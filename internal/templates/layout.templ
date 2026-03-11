@@ -1,59 +1,77 @@
 package templates
 
 templ Index(version string, revision string) {
-    <div style="text-align: center">
-        <p><b>ionscale</b></p>
-        <p><small>{ version }</small></p>
-        <p><small>{ revision }</small></p>
-    </div>
+    <section class="stack stack-center hero">
+        <span class="eyebrow">ionscale</span>
+        <h1 class="title">Control plane online</h1>
+        <p class="subtitle">Self-hosted tailnet coordination with a cleaner authentication surface.</p>
+        <div class="metaGrid">
+            <div class="metaCard">
+                <span class="metaLabel">Version</span>
+                <code>{ version }</code>
+            </div>
+            <div class="metaCard">
+                <span class="metaLabel">Revision</span>
+                <code>{ revision }</code>
+            </div>
+        </div>
+    </section>
 }
 
 templ Success() {
-    <div style="text-align: center">
-        <p><b>Authorization successful</b></p>
-        <small>You can now close this window</small>
-    </div>
+    <section class="stack stack-center hero">
+        <span class="eyebrow eyebrow-success">Authorized</span>
+        <h1 class="title">Authorization successful</h1>
+        <p class="subtitle">You can now close this window and return to your device.</p>
+    </section>
 }
 
 templ NewMachine() {
-    <div style="text-align: center">
-        <p><b>Authentication successful</b></p>
-        <small>but this is a <b style="color: blue">new machine</b> and needs to be authorized by your Tailnet admin.</small>
-    </div>
+    <section class="stack stack-center hero">
+        <span class="eyebrow eyebrow-info">Authenticated</span>
+        <h1 class="title">This machine still needs approval</h1>
+        <p class="subtitle">Authentication succeeded, but this is a <span class="highlight highlight-info">new machine</span> and it still needs approval from your Tailnet admin.</p>
+    </section>
 }
 
 templ Error() {
-    <div style="text-align: center">
-        <p><b>An error occurred</b></p>
-    </div>
+    <section class="stack stack-center hero">
+        <span class="eyebrow eyebrow-danger">Error</span>
+        <h1 class="title">Something went wrong</h1>
+        <p class="subtitle">The request could not be completed. Retry the flow or inspect the server logs for more detail.</p>
+    </section>
 }
 
 templ Unauthorized() {
-    <div style="text-align: center">
-        <p><b>Authentication successful</b></p>
-        <small>but you're <b style="color: red">not</b> authorized to use any network</small>
-    </div>
+    <section class="stack stack-center hero">
+        <span class="eyebrow eyebrow-danger">Access denied</span>
+        <h1 class="title">Authentication succeeded, but access was denied</h1>
+        <p class="subtitle">Your identity is valid, but you are <span class="highlight highlight-danger">not authorized</span> to use any network.</p>
+    </section>
 }
 
 templ InvalidAuthKey() {
-    <div style="text-align: center">
-        <p><b>Authorization failed</b></p>
-        <small>the provided auth key is <b style="color: red">invalid</b></small>
-    </div>
+    <section class="stack stack-center hero">
+        <span class="eyebrow eyebrow-danger">Authorization failed</span>
+        <h1 class="title">Invalid auth key</h1>
+        <p class="subtitle">The provided auth key is <span class="highlight highlight-danger">invalid</span>. Check the key value and try again.</p>
+    </section>
 }
 
 templ NotTagOwner() {
-    <div style="text-align: center">
-        <p><b>Authentication successful</b></p>
-        <small>but you're <b style="color: red">not</b> a valid tag owner for the requested tags</small>
-    </div>
+    <section class="stack stack-center hero">
+        <span class="eyebrow eyebrow-danger">Access denied</span>
+        <h1 class="title">Tag ownership check failed</h1>
+        <p class="subtitle">Authentication succeeded, but you are <span class="highlight highlight-danger">not a valid tag owner</span> for the requested tags.</p>
+    </section>
 }
 
 templ NotMachineOwner() {
-    <div style="text-align: center">
-        <p><b>Authentication successful</b></p>
-        <small>but you're <b style="color: red">not</b> a valid owner of the machine</small>
-    </div>
+    <section class="stack stack-center hero">
+        <span class="eyebrow eyebrow-danger">Access denied</span>
+        <h1 class="title">Machine ownership check failed</h1>
+        <p class="subtitle">Authentication succeeded, but you are <span class="highlight highlight-danger">not a valid owner</span> of this machine.</p>
+    </section>
 }
 
 templ layout(contents templ.Component) {
@@ -63,9 +81,22 @@ templ layout(contents templ.Component) {
         @heading()
     </head>
     <body>
-    <div class="wrapper">
-        @contents
-    </div>
+    <main class="page">
+        <div class="ambient ambientOne"></div>
+        <div class="ambient ambientTwo"></div>
+        <div class="wrapper">
+            <div class="brandBar">
+                <div class="brandMark">I</div>
+                <div>
+                    <p class="brandName">ionscale</p>
+                    <p class="brandHint">Authentication gateway</p>
+                </div>
+            </div>
+            <div class="shell">
+                @contents
+            </div>
+        </div>
+    </main>
     </body>
     </html>
 }
@@ -74,78 +105,419 @@ templ heading() {
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
+        :root {
+            color-scheme: dark;
+            --bg: #09090b;
+            --panel: rgba(15, 23, 42, 0.88);
+            --panel-strong: rgba(24, 24, 27, 0.96);
+            --panel-soft: rgba(39, 39, 42, 0.72);
+            --border: rgba(255, 255, 255, 0.1);
+            --border-strong: rgba(255, 255, 255, 0.16);
+            --text: #fafafa;
+            --muted: #a1a1aa;
+            --muted-strong: #d4d4d8;
+            --accent: #f4f4f5;
+            --accent-foreground: #09090b;
+            --success: #34d399;
+            --info: #60a5fa;
+            --danger: #f87171;
+            --shadow: 0 32px 80px rgba(0, 0, 0, 0.45);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui,
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            "Roboto",
-            "Oxygen",
-            "Ubuntu",
-            "Cantarell",
-            "Fira Sans",
-            "Droid Sans",
-            "Helvetica Neue",
-            sans-serif;
+            font-family: "Segoe UI", "Inter", "Helvetica Neue", sans-serif;
         }
 
         body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.14), transparent 26%),
+                linear-gradient(180deg, #09090b 0%, #111827 100%);
+            color: var(--text);
+        }
+
+        .page {
+            position: relative;
+            min-height: 100vh;
             width: 100%;
-            height: 100vh;
-            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow: hidden;
+        }
+
+        .ambient {
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(60px);
+            opacity: 0.42;
+            pointer-events: none;
+        }
+
+        .ambientOne {
+            top: 8%;
+            left: 10%;
+            width: 220px;
+            height: 220px;
+            background: rgba(96, 165, 250, 0.22);
+        }
+
+        .ambientTwo {
+            right: 12%;
+            bottom: 10%;
+            width: 260px;
+            height: 260px;
+            background: rgba(244, 114, 182, 0.18);
         }
 
         .wrapper {
-            background: #eef5ff;
-            color: #12304b;
-            max-width: 400px;
             width: 100%;
-            margin: 120px auto;
-            padding: 25px;
-            border: 1px solid #1f5c99;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            max-width: 560px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brandBar {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+            padding: 0 6px;
+        }
+
+        .brandMark {
+            width: 42px;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(250, 250, 250, 0.95), rgba(161, 161, 170, 0.86));
+            color: #09090b;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+        }
+
+        .brandName {
+            font-size: 0.98rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .brandHint {
+            color: var(--muted);
+            font-size: 0.84rem;
+        }
+
+        .shell {
+            background: linear-gradient(180deg, rgba(24, 24, 27, 0.94) 0%, rgba(9, 9, 11, 0.98) 100%);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .stack-center {
+            text-align: center;
+            align-items: center;
+        }
+
+        .hero {
+            gap: 14px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 30px;
+            padding: 0 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border-strong);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--muted-strong);
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow-success {
+            color: var(--success);
+            border-color: rgba(52, 211, 153, 0.28);
+            background: rgba(52, 211, 153, 0.08);
+        }
+
+        .eyebrow-info {
+            color: var(--info);
+            border-color: rgba(96, 165, 250, 0.26);
+            background: rgba(96, 165, 250, 0.08);
+        }
+
+        .eyebrow-danger {
+            color: var(--danger);
+            border-color: rgba(248, 113, 113, 0.26);
+            background: rgba(248, 113, 113, 0.08);
+        }
+
+        .title {
+            font-size: clamp(1.8rem, 4vw, 2.35rem);
+            line-height: 1.08;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 0.98rem;
+            line-height: 1.65;
+            max-width: 42ch;
+        }
+
+        .highlight {
+            font-weight: 700;
+            color: var(--muted-strong);
+        }
+
+        .highlight-info {
+            color: var(--info);
+        }
+
+        .highlight-danger {
+            color: var(--danger);
+        }
+
+        .metaGrid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .metaCard {
+            padding: 14px 16px;
+            text-align: left;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: var(--panel-soft);
+        }
+
+        .metaLabel {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        code {
+            color: var(--text);
+            font-size: 0.88rem;
+            word-break: break-word;
+        }
+
+        .sectionHeader {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sectionTitle {
+            font-size: 1.4rem;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+        }
+
+        .sectionText {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .divider {
+            position: relative;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .divider span {
+            position: relative;
+            display: inline-block;
+            padding: 0 12px;
+            background: var(--panel-strong);
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .label {
+            color: var(--muted-strong);
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .helper {
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+
+        .selectionList {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .selectionList li {
-            position: relative;
             list-style: none;
-            height: 45px;
-            line-height: 45px;
-            margin-bottom: 8px;
-            overflow: hidden;
-            background: #fff;
-            border: 1px solid #c0c0c0;
-            border-radius: 4px;
-            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
         }
 
         .selectionList li button {
-            margin: 0;
             display: block;
             width: 100%;
-            height: 100%;
-            border: none;
+            text-align: left;
         }
 
         input {
             display: block;
             width: 100%;
-            height: 100%;
-            padding: 10px;
-            border: 1px solid #c0c0c0;
-            border-radius: 4px;
+            min-height: 48px;
+            padding: 0 14px;
+            border: 1px solid var(--border-strong);
+            border-radius: 14px;
+            background: rgba(9, 9, 11, 0.9);
+            color: var(--text);
+            outline: none;
+            transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+        }
+
+        input::placeholder {
+            color: #71717a;
+        }
+
+        input:focus {
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+            background: rgba(9, 9, 11, 1);
         }
 
         button {
-            padding: 10px 20px;
-            height: 45px;
-            background: #fff;
-            border: 1px solid #c0c0c0;
-            border-radius: 4px;
-            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            min-height: 48px;
+            padding: 0 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border-strong);
+            background: rgba(24, 24, 27, 0.88);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(39, 39, 42, 0.95);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+        }
+
+        button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.14);
+        }
+
+        .buttonPrimary {
+            background: var(--accent);
+            color: var(--accent-foreground);
+        }
+
+        .buttonPrimary:hover {
+            background: #ffffff;
+        }
+
+        .buttonRow {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .buttonLabel {
+            display: block;
+            font-weight: 600;
+        }
+
+        .buttonHint {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 0.84rem;
+            font-weight: 500;
+        }
+
+        .buttonPrimary .buttonHint {
+            color: rgba(9, 9, 11, 0.72);
+        }
+
+        .panel {
+            padding: 18px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--panel-soft);
+        }
+
+        .panel strong {
+            color: var(--muted-strong);
+        }
+
+        @media (max-width: 640px) {
+            .page {
+                padding: 16px;
+            }
+
+            .shell {
+                padding: 22px;
+                border-radius: 22px;
+            }
+
+            .metaGrid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
     <title>ionscale</title>

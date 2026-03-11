@@ -4,40 +4,51 @@ import "strconv"
 import "github.com/jsiebens/ionscale/internal/domain"
 
 templ Tailnets(accountID uint64, isSystemAdmin bool, tailnets []domain.Tailnet, csrf string) {
-    if isSystemAdmin {
-        <div style="text-align: left; padding-bottom: 10px">
-            <p><b>System Admin</b></p>
-            <small>You are a member of the System Admin group:</small>
+    <section class="stack">
+        <div class="sectionHeader">
+            <span class="eyebrow">Tailnet selection</span>
+            <h1 class="sectionTitle">Choose where to continue</h1>
+            <p class="sectionText">Select the context for this session. Your permissions decide which options appear here.</p>
         </div>
-        <form method="post">
-            <input type="hidden" name="aid" value={ strconv.FormatUint(accountID, 10) } />
-            <input type="hidden" name="_csrf" value={ csrf } />
-            <ul class="selectionList">
-                <li><button type="submit" name="sad" value="true">OK, continue as System Admin</button></li>
-            </ul>
-        </form>
-    }
 
-    if len(tailnets) != 0 {
         if isSystemAdmin {
-            <div style="text-align: left; padding-bottom: 10px; padding-top: 20px">
-                <small>Or select your <b>tailnet</b>:</small>
-            </div>
-        } else {
-            <div style="text-align: left; padding-bottom: 10px;">
-                <p><b>Tailnets</b></p>
-                <small>Select your tailnet:</small>
+            <div class="panel stack">
+                <div class="sectionHeader">
+                    <h2 class="sectionTitle">System Admin access</h2>
+                    <p class="sectionText">You are a member of the System Admin group and can continue with elevated access.</p>
+                </div>
+                <form method="post" class="form">
+                    <input type="hidden" name="aid" value={ strconv.FormatUint(accountID, 10) }/>
+                    <input type="hidden" name="_csrf" value={ csrf }/>
+                    <div class="buttonRow">
+                        <button class="buttonPrimary" type="submit" name="sad" value="true">
+                            <span class="buttonLabel">Continue as System Admin</span>
+                            <span class="buttonHint">Use elevated access for this session.</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         }
 
-        <form method="post">
-            <input type="hidden" name="aid" value={ strconv.FormatUint(accountID, 10) }/>
-            <input type="hidden" name="_csrf" value={ csrf }/>
-            <ul class="selectionList">
-            for _, t := range tailnets {
-                <li><button type="submit" name="tid" value={ strconv.FormatUint(t.ID, 10) }>{ t.Name }</button></li>
+        if len(tailnets) != 0 {
+            if isSystemAdmin {
+                <div class="divider"><span>or select a tailnet</span></div>
             }
-            </ul>
-        </form>
-    }
+
+            <form method="post" class="form">
+                <input type="hidden" name="aid" value={ strconv.FormatUint(accountID, 10) }/>
+                <input type="hidden" name="_csrf" value={ csrf }/>
+                <ul class="selectionList">
+                for _, t := range tailnets {
+                    <li>
+                        <button type="submit" name="tid" value={ strconv.FormatUint(t.ID, 10) }>
+                            <span class="buttonLabel">{ t.Name }</span>
+                            <span class="buttonHint">Continue in this tailnet.</span>
+                        </button>
+                    </li>
+                }
+                </ul>
+            </form>
+        }
+    </section>
 }

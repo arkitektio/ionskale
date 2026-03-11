@@ -1,32 +1,43 @@
 package templates
 
 templ Auth(oidc bool, csrf string) {
-    if oidc {
-        <div style="text-align: left; padding-bottom: 10px">
-            <p><b>Authentication required</b></p>
-            <small>Login with:</small>
+    <section class="stack">
+        <div class="sectionHeader">
+            <span class="eyebrow">Authentication</span>
+            <h1 class="sectionTitle">Sign in to continue</h1>
+            if oidc {
+                <p class="sectionText">Use OpenID Connect for the standard sign-in flow, or provide an auth key if you are completing a direct registration.</p>
+            } else {
+                <p class="sectionText">Provide an auth key to continue this authentication flow.</p>
+            }
         </div>
-        <form method="post">
-            <input type="hidden" name="_csrf" value={ csrf } />
-            <ul class="selectionList">
-                <li><button type="submit" name="oidc" value="true">OpenID</button></li>
-            </ul>
-        </form>
-        <div style="text-align: left; padding-bottom: 10px; padding-top: 20px">
-            <small>Or enter an <label for="ak">auth key</label> here:</small>
-        </div>
-    } else {
-        <div style="text-align: left; padding-bottom: 10px">
-            <p><b>Authentication required</b></p>
-            <small>Enter an <label for="ak">auth key</label> here:</small>
-        </div>
-    }
 
-    <form method="post" style="text-align: right">
-        <input type="hidden" name="_csrf" value={ csrf } />
-        <p><input id="ak" name="ak" type="text"/></p>
-        <div style="padding-top: 10px">
-            <button type="submit">submit</button>
-        </div>
-    </form>
+        if oidc {
+            <form method="post" class="form">
+                <input type="hidden" name="_csrf" value={ csrf }/>
+                <ul class="selectionList">
+                    <li>
+                        <button class="buttonPrimary" type="submit" name="oidc" value="true">
+                            <span class="buttonLabel">Continue with OpenID Connect</span>
+                            <span class="buttonHint">Use your configured identity provider.</span>
+                        </button>
+                    </li>
+                </ul>
+            </form>
+
+            <div class="divider"><span>or use an auth key</span></div>
+        }
+
+        <form method="post" class="form">
+            <input type="hidden" name="_csrf" value={ csrf }/>
+            <div class="field">
+                <label class="label" for="ak">Auth key</label>
+                <input id="ak" name="ak" type="text" placeholder="Paste your auth key" autocomplete="off"/>
+                <p class="helper">The key is submitted directly to the server and used only for this authentication request.</p>
+            </div>
+            <div class="buttonRow">
+                <button type="submit">Continue with auth key</button>
+            </div>
+        </form>
+    </section>
 }
