@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+
 	"github.com/bufbuild/connect-go"
+	"github.com/jsiebens/ionscale/internal/audit"
 	"github.com/jsiebens/ionscale/internal/domain"
 	api "github.com/jsiebens/ionscale/pkg/gen/ionscale/v1"
 )
@@ -58,6 +60,8 @@ func (s *Service) SetIAMPolicy(ctx context.Context, req *connect.Request[api.Set
 	if err := s.repository.SaveTailnet(ctx, tailnet); err != nil {
 		return nil, logError(err)
 	}
+
+	audit.Log("tailnet.iam_policy.updated", append(audit.Tailnet(tailnet), audit.Actor(principal))...)
 
 	return connect.NewResponse(&api.SetIAMPolicyResponse{}), nil
 }

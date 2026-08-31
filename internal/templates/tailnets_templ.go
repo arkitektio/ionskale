@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import "strconv"
 import "github.com/jsiebens/ionscale/internal/domain"
 
-func Tailnets(accountID uint64, isSystemAdmin bool, tailnets []domain.Tailnet, csrf string) templ.Component {
+func Tailnets(session string, isSystemAdmin bool, tailnets []domain.Tailnet, csrf string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -37,14 +37,14 @@ func Tailnets(accountID uint64, isSystemAdmin bool, tailnets []domain.Tailnet, c
 			return templ_7745c5c3_Err
 		}
 		if isSystemAdmin {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"panel stack\"><div class=\"sectionHeader\"><h2 class=\"sectionTitle\">System Admin access</h2><p class=\"sectionText\">You are a member of the System Admin group and can continue with elevated access.</p></div><form method=\"post\" class=\"form\"><input type=\"hidden\" name=\"aid\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"panel stack\"><div class=\"sectionHeader\"><h2 class=\"sectionTitle\">System Admin access</h2><p class=\"sectionText\">You are a member of the System Admin group and can continue with elevated access.</p></div><form method=\"post\" class=\"form\"><input type=\"hidden\" name=\"sid\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatUint(accountID, 10))
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(session)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/tailnets.templ`, Line: 21, Col: 93}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/tailnets.templ`, Line: 21, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -75,14 +75,14 @@ func Tailnets(accountID uint64, isSystemAdmin bool, tailnets []domain.Tailnet, c
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " <form method=\"post\" class=\"form\"><input type=\"hidden\" name=\"aid\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " <form method=\"post\" class=\"form\"><input type=\"hidden\" name=\"sid\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatUint(accountID, 10))
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(session)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/tailnets.templ`, Line: 39, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/tailnets.templ`, Line: 39, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bufbuild/connect-go"
+	"github.com/jsiebens/ionscale/internal/audit"
 	"github.com/jsiebens/ionscale/internal/domain"
 	"github.com/jsiebens/ionscale/internal/util"
 	"github.com/jsiebens/ionscale/pkg/defaults"
 	api "github.com/jsiebens/ionscale/pkg/gen/ionscale/v1"
+	"go.uber.org/zap"
 	"tailscale.com/tailcfg"
 )
 
@@ -16,6 +18,7 @@ func domainTailnetToApiTailnet(tailnet *domain.Tailnet) (*api.Tailnet, error) {
 	t := &api.Tailnet{
 		Id:                          tailnet.ID,
 		Name:                        tailnet.Name,
+		Organization:                tailnet.Organization,
 		IamPolicy:                   tailnet.IAMPolicy.String(),
 		AclPolicy:                   tailnet.ACLPolicy.String(),
 		DnsConfig:                   domainDNSConfigToApiDNSConfig(tailnet),
@@ -42,8 +45,28 @@ func (s *Service) CreateTailnet(ctx context.Context, req *connect.Request[api.Cr
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("tailnet with name '%s' already exists", req.Msg.Name))
 	}
 
+	// one tailnet per organization: makes provisioning by an external backend
+	// idempotent (catch AlreadyExists) and prevents accidental duplicates
+	if req.Msg.Organization != "" {
+		existing, err := s.repository.ListTailnetsByOrganization(ctx, req.Msg.Organization)
+		if err != nil {
+			return nil, logError(err)
+		}
+		if len(existing) > 0 {
+			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("a tailnet for organization '%s' already exists", req.Msg.Organization))
+		}
+	}
+
 	iamPolicy := domain.NewHuJSON(&domain.IAMPolicy{})
 	aclPolicy := domain.NewHuJSON(&domain.ACLPolicy{ACLPolicy: *defaults.DefaultACLPolicy()})
+
+	if s.config.Tailnets.DefaultACLPolicy != "" {
+		configuredPolicy, err := domain.ParseHuJson[domain.ACLPolicy](s.config.Tailnets.DefaultACLPolicy)
+		if err != nil {
+			return nil, logError(fmt.Errorf("configured tailnets.default_acl_policy is invalid: %w", err))
+		}
+		aclPolicy = *configuredPolicy
+	}
 
 	if req.Msg.IamPolicy != "" {
 		newPolicy, err := domain.ParseHuJson[domain.IAMPolicy](req.Msg.IamPolicy)
@@ -71,18 +94,23 @@ func (s *Service) CreateTailnet(ctx context.Context, req *connect.Request[api.Cr
 	tailnet := &domain.Tailnet{
 		ID:                          util.NextID(),
 		Name:                        req.Msg.Name,
+		Organization:                req.Msg.Organization,
 		IAMPolicy:                   iamPolicy,
 		ACLPolicy:                   aclPolicy,
 		DNSConfig:                   apiDNSConfigToDomainDNSConfig(req.Msg.DnsConfig),
-		ServiceCollectionEnabled:    req.Msg.ServiceCollectionEnabled,
-		FileSharingEnabled:          req.Msg.FileSharingEnabled,
-		SSHEnabled:                  req.Msg.SshEnabled,
-		MachineAuthorizationEnabled: req.Msg.MachineAuthorizationEnabled,
+		ServiceCollectionEnabled: req.Msg.ServiceCollectionEnabled,
+		FileSharingEnabled:       req.Msg.FileSharingEnabled,
+		SSHEnabled:               req.Msg.SshEnabled,
+		// the configured default acts as a floor: proto3 booleans cannot
+		// distinguish unset from false
+		MachineAuthorizationEnabled: req.Msg.MachineAuthorizationEnabled || s.config.Tailnets.MachineAuthorization,
 	}
 
 	if err := s.repository.SaveTailnet(ctx, tailnet); err != nil {
 		return nil, logError(err)
 	}
+
+	audit.Log("tailnet.created", append(audit.Tailnet(tailnet), audit.Actor(principal))...)
 
 	t, err := domainTailnetToApiTailnet(tailnet)
 	if err != nil {
@@ -141,6 +169,8 @@ func (s *Service) UpdateTailnet(ctx context.Context, req *connect.Request[api.Up
 		return nil, logError(err)
 	}
 
+	audit.Log("tailnet.updated", append(audit.Tailnet(tailnet), audit.Actor(principal))...)
+
 	s.sessionManager.NotifyAll(tailnet.ID)
 
 	t, err := domainTailnetToApiTailnet(tailnet)
@@ -181,13 +211,28 @@ func (s *Service) ListTailnets(ctx context.Context, req *connect.Request[api.Lis
 
 	resp := &api.ListTailnetsResponse{}
 
+	if req.Msg.Organization != "" {
+		if !principal.IsSystemAdmin() {
+			return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("permission denied"))
+		}
+		tailnets, err := s.repository.ListTailnetsByOrganization(ctx, req.Msg.Organization)
+		if err != nil {
+			return nil, logError(err)
+		}
+		for _, t := range tailnets {
+			gt := api.Tailnet{Id: t.ID, Name: t.Name, Organization: t.Organization}
+			resp.Tailnet = append(resp.Tailnet, &gt)
+		}
+		return connect.NewResponse(resp), nil
+	}
+
 	if principal.IsSystemAdmin() {
 		tailnets, err := s.repository.ListTailnets(ctx)
 		if err != nil {
 			return nil, logError(err)
 		}
 		for _, t := range tailnets {
-			gt := api.Tailnet{Id: t.ID, Name: t.Name}
+			gt := api.Tailnet{Id: t.ID, Name: t.Name, Organization: t.Organization}
 			resp.Tailnet = append(resp.Tailnet, &gt)
 		}
 	}
@@ -246,6 +291,8 @@ func (s *Service) DeleteTailnet(ctx context.Context, req *connect.Request[api.De
 	if err != nil {
 		return nil, logError(err)
 	}
+
+	audit.Log("tailnet.deleted", audit.Actor(principal), zap.Uint64("tailnet_id", req.Msg.TailnetId))
 
 	s.sessionManager.NotifyAll(req.Msg.TailnetId)
 

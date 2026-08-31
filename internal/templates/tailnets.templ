@@ -3,7 +3,7 @@ package templates
 import "strconv"
 import "github.com/jsiebens/ionscale/internal/domain"
 
-templ Tailnets(accountID uint64, isSystemAdmin bool, tailnets []domain.Tailnet, csrf string) {
+templ Tailnets(session string, isSystemAdmin bool, tailnets []domain.Tailnet, csrf string) {
     <section class="stack">
         <div class="sectionHeader">
             <span class="eyebrow">Tailnet selection</span>
@@ -18,7 +18,7 @@ templ Tailnets(accountID uint64, isSystemAdmin bool, tailnets []domain.Tailnet, 
                     <p class="sectionText">You are a member of the System Admin group and can continue with elevated access.</p>
                 </div>
                 <form method="post" class="form">
-                    <input type="hidden" name="aid" value={ strconv.FormatUint(accountID, 10) }/>
+                    <input type="hidden" name="sid" value={ session }/>
                     <input type="hidden" name="_csrf" value={ csrf }/>
                     <div class="buttonRow">
                         <button class="buttonPrimary" type="submit" name="sad" value="true">
@@ -36,7 +36,7 @@ templ Tailnets(accountID uint64, isSystemAdmin bool, tailnets []domain.Tailnet, 
             }
 
             <form method="post" class="form">
-                <input type="hidden" name="aid" value={ strconv.FormatUint(accountID, 10) }/>
+                <input type="hidden" name="sid" value={ session }/>
                 <input type="hidden" name="_csrf" value={ csrf }/>
                 <ul class="selectionList">
                 for _, t := range tailnets {

@@ -203,7 +203,7 @@ func (h *RegistrationHandlers) authenticateMachineWithAuthKey(c echo.Context, ma
 			Tags:              domain.SanitizeTags(tags),
 			AutoAllowIPs:      autoAllowIPs,
 			CreatedAt:         now,
-			ExpiresAt:         now.Add(180 * 24 * time.Hour).UTC(),
+			ExpiresAt:         now.Add(config.MachineKeyExpiry()).UTC(),
 			KeyExpiryDisabled: len(tags) != 0,
 			Authorized:        !tailnet.MachineAuthorizationEnabled || authKey.PreAuthorized,
 
@@ -242,7 +242,7 @@ func (h *RegistrationHandlers) authenticateMachineWithAuthKey(c echo.Context, ma
 		m.User = user
 		m.TailnetID = tailnet.ID
 		m.Tailnet = tailnet
-		m.ExpiresAt = now.Add(180 * 24 * time.Hour).UTC()
+		m.ExpiresAt = now.Add(config.MachineKeyExpiry()).UTC()
 	}
 
 	if err := h.repository.SaveMachine(ctx, m); err != nil {

@@ -4,17 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/jsiebens/ionscale/internal/addr"
+	"github.com/jsiebens/ionscale/internal/audit"
 	"github.com/jsiebens/ionscale/internal/auth"
 	tpl "github.com/jsiebens/ionscale/internal/templates"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/mr-tron/base58"
-	"net/http"
+	"go.uber.org/zap"
 	"tailscale.com/tailcfg"
-	"time"
 
 	"github.com/jsiebens/ionscale/internal/config"
 	"github.com/jsiebens/ionscale/internal/domain"
+	"github.com/jsiebens/ionscale/internal/key"
 	"github.com/jsiebens/ionscale/internal/util"
 	"github.com/labstack/echo/v4"
 	"tailscale.com/util/dnsname"
@@ -24,6 +28,7 @@ func NewAuthenticationHandlers(
 	config *config.Config,
 	authProvider auth.Provider,
 	systemIAMPolicy *domain.IAMPolicy,
+	sessionKey key.ServerPrivate,
 	repository domain.Repository) *AuthenticationHandlers {
 
 	return &AuthenticationHandlers{
@@ -31,6 +36,7 @@ func NewAuthenticationHandlers(
 		authProvider:    authProvider,
 		repository:      repository,
 		systemIAMPolicy: systemIAMPolicy,
+		sessionKey:      sessionKey,
 	}
 }
 
@@ -39,6 +45,7 @@ type AuthenticationHandlers struct {
 	authProvider    auth.Provider
 	config          *config.Config
 	systemIAMPolicy *domain.IAMPolicy
+	sessionKey      key.ServerPrivate
 }
 
 type AuthInput struct {
@@ -54,11 +61,13 @@ type EndAuthForm struct {
 	AsSystemAdmin bool   `form:"sad"`
 	AuthKey       string `form:"ak"`
 	State         string `form:"state"`
+	Session       string `form:"sid"`
 }
 
 type oauthState struct {
-	Key  string
-	Flow AuthFlow
+	Key       string
+	Flow      AuthFlow
+	ExpiresAt time.Time
 }
 
 type AuthFlow string
@@ -92,8 +101,15 @@ func (h *AuthenticationHandlers) StartAuth(c echo.Context) error {
 			return h.endMachineRegistrationFlow(c, EndAuthForm{AuthKey: input.AuthKey}, req)
 		}
 
+		// with an OIDC provider configured, skip the login chooser and go
+		// straight to the identity provider; auth keys are still accepted via
+		// `tailscale up --authkey` or the `ak` query parameter
+		if h.authProvider != nil {
+			goto startOidc
+		}
+
 		csrf := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
-		return c.Render(http.StatusOK, "", tpl.Auth(h.authProvider != nil, csrf))
+		return c.Render(http.StatusOK, "", tpl.Auth(false, csrf))
 	}
 
 	// cli auth flow
@@ -217,6 +233,10 @@ func (h *AuthenticationHandlers) Callback(c echo.Context) error {
 		return c.Redirect(http.StatusFound, "/a/error?e=nmo")
 	}
 
+	if err := h.syncOrgRoles(ctx, user); err != nil {
+		return logError(err)
+	}
+
 	tailnets, err := h.listAvailableTailnets(ctx, user)
 	if err != nil {
 		return logError(err)
@@ -226,6 +246,7 @@ func (h *AuthenticationHandlers) Callback(c echo.Context) error {
 
 	if state.Flow == AuthFlowMachineRegistration {
 		if len(tailnets) == 0 {
+			audit.Log("login.refused", zap.String("actor", user.Name), zap.String("org", user.Org), zap.String("flow", "machine"))
 			registrationRequest, err := h.repository.GetRegistrationRequestByKey(ctx, state.Key)
 			if err == nil && registrationRequest != nil {
 				registrationRequest.Error = "unauthorized"
@@ -245,7 +266,12 @@ func (h *AuthenticationHandlers) Callback(c echo.Context) error {
 			return h.endMachineRegistrationFlow(c, EndAuthForm{AccountID: account.ID, TailnetID: tailnets[0].ID}, req)
 		}
 
-		return c.Render(http.StatusOK, "", tpl.Tailnets(account.ID, false, tailnets, csrf))
+		session, err := h.createSession(state, account.ID, false, tailnets)
+		if err != nil {
+			return logError(err)
+		}
+
+		return c.Render(http.StatusOK, "", tpl.Tailnets(session, false, tailnets, csrf))
 	}
 
 	if state.Flow == AuthFlowClient {
@@ -255,6 +281,7 @@ func (h *AuthenticationHandlers) Callback(c echo.Context) error {
 		}
 
 		if !isSystemAdmin && len(tailnets) == 0 {
+			audit.Log("login.refused", zap.String("actor", user.Name), zap.String("org", user.Org), zap.String("flow", "cli"))
 			req, err := h.repository.GetAuthenticationRequest(ctx, state.Key)
 			if err == nil && req != nil {
 				req.Error = "unauthorized"
@@ -263,10 +290,42 @@ func (h *AuthenticationHandlers) Callback(c echo.Context) error {
 			return c.Redirect(http.StatusFound, "/a/error?e=ua")
 		}
 
-		return c.Render(http.StatusOK, "", tpl.Tailnets(account.ID, isSystemAdmin, tailnets, csrf))
+		// with exactly one tailnet and no system-admin continuation to offer,
+		// there is nothing to choose: finish the login right away
+		if !isSystemAdmin && len(tailnets) == 1 {
+			req, err := h.repository.GetAuthenticationRequest(ctx, state.Key)
+			if err != nil {
+				return logError(err)
+			}
+			if req == nil {
+				return logError(fmt.Errorf("invalid authentication key"))
+			}
+			return h.endCliAuthenticationFlow(c, EndAuthForm{AccountID: account.ID, TailnetID: tailnets[0].ID}, req)
+		}
+
+		session, err := h.createSession(state, account.ID, isSystemAdmin, tailnets)
+		if err != nil {
+			return logError(err)
+		}
+
+		return c.Render(http.StatusOK, "", tpl.Tailnets(session, isSystemAdmin, tailnets, csrf))
 	}
 
 	return echo.NewHTTPError(http.StatusNotFound)
+}
+
+func (h *AuthenticationHandlers) createSession(state *oauthState, accountID uint64, isSystemAdmin bool, tailnets []domain.Tailnet) (string, error) {
+	session := &authSession{
+		Flow:        state.Flow,
+		Key:         state.Key,
+		AccountID:   accountID,
+		SystemAdmin: isSystemAdmin,
+		ExpiresAt:   time.Now().Add(authSessionLifetime),
+	}
+	for _, t := range tailnets {
+		session.TailnetIDs = append(session.TailnetIDs, t.ID)
+	}
+	return sealAuthSession(h.sessionKey, session)
 }
 
 func (h *AuthenticationHandlers) EndAuth(c echo.Context) error {
@@ -280,6 +339,29 @@ func (h *AuthenticationHandlers) EndAuth(c echo.Context) error {
 	state, err := h.readState(form.State)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid state parameter")
+	}
+
+	// The identity and its grants are taken from the sealed session created
+	// after the OIDC exchange; the raw form values only select among them.
+	session, err := openAuthSession(h.sessionKey, form.Session)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusForbidden, "Invalid or expired session")
+	}
+
+	if session.Flow != state.Flow || session.Key != state.Key {
+		return echo.NewHTTPError(http.StatusForbidden, "Session does not match this authentication flow")
+	}
+
+	// No interactive flow submits an auth key to this endpoint; drop it so the
+	// selection below is always validated against the session.
+	form.AuthKey = ""
+
+	form.AccountID = session.AccountID
+	if form.AsSystemAdmin && !session.SystemAdmin {
+		return echo.NewHTTPError(http.StatusForbidden, "Not a system admin")
+	}
+	if !form.AsSystemAdmin && !session.allowsTailnet(form.TailnetID) {
+		return echo.NewHTTPError(http.StatusForbidden, "Not a member of the selected tailnet")
 	}
 
 	if state.Flow == AuthFlowMachineRegistration {
@@ -353,6 +435,7 @@ func (h *AuthenticationHandlers) endCliAuthenticationFlow(c echo.Context, form E
 		if err != nil {
 			return logError(err)
 		}
+		audit.Log("login.system_admin", zap.String("actor", account.LoginName), zap.Uint64("account_id", account.ID))
 		return c.Redirect(http.StatusFound, "/a/success")
 	}
 
@@ -386,6 +469,8 @@ func (h *AuthenticationHandlers) endCliAuthenticationFlow(c echo.Context, form E
 	if err != nil {
 		return logError(err)
 	}
+
+	audit.Log("login.cli", append(audit.Tailnet(tailnet), zap.String("actor", user.Name))...)
 
 	return c.Redirect(http.StatusFound, "/a/success")
 }
@@ -490,7 +575,7 @@ func (h *AuthenticationHandlers) endMachineRegistrationFlow(c echo.Context, form
 			Tags:              domain.SanitizeTags(tags),
 			AutoAllowIPs:      autoAllowIPs,
 			CreatedAt:         now,
-			ExpiresAt:         now.Add(180 * 24 * time.Hour).UTC(),
+			ExpiresAt:         now.Add(config.MachineKeyExpiry()).UTC(),
 			KeyExpiryDisabled: len(tags) != 0,
 			Authorized:        !tailnet.MachineAuthorizationEnabled || authorized,
 
@@ -529,7 +614,7 @@ func (h *AuthenticationHandlers) endMachineRegistrationFlow(c echo.Context, form
 		m.User = *user
 		m.TailnetID = tailnet.ID
 		m.Tailnet = *tailnet
-		m.ExpiresAt = now.Add(180 * 24 * time.Hour).UTC()
+		m.ExpiresAt = now.Add(config.MachineKeyExpiry()).UTC()
 	}
 
 	err = h.repository.Transaction(func(rp domain.Repository) error {
@@ -556,6 +641,13 @@ func (h *AuthenticationHandlers) endMachineRegistrationFlow(c echo.Context, form
 		return logError(err)
 	}
 
+	audit.Log("machine.registered", append(audit.Tailnet(tailnet),
+		zap.String("actor", user.Name),
+		zap.String("machine", m.Name),
+		zap.Uint64("machine_id", m.ID),
+		zap.Bool("via_auth_key", form.AuthKey != ""),
+		zap.Bool("authorized", m.Authorized))...)
+
 	if m.Authorized {
 		return c.Redirect(http.StatusFound, "/a/success")
 	} else {
@@ -569,12 +661,13 @@ func (h *AuthenticationHandlers) isSystemAdmin(u *auth.User) (bool, error) {
 
 func (h *AuthenticationHandlers) listAvailableTailnets(ctx context.Context, u *auth.User) ([]domain.Tailnet, error) {
 	var result = []domain.Tailnet{}
+	orgs := h.config.Auth.Organizations
 	tailnets, err := h.repository.ListTailnets(ctx)
 	if err != nil {
 		return nil, err
 	}
 	for _, t := range tailnets {
-		approved, err := t.IAMPolicy.Get().EvaluatePolicy(&domain.Identity{UserID: u.ID, Email: u.Name, Attr: u.Attr})
+		approved, err := tailnetAccessible(orgs, t, u)
 		if err != nil {
 			return nil, err
 		}
@@ -583,6 +676,93 @@ func (h *AuthenticationHandlers) listAvailableTailnets(ctx context.Context, u *a
 		}
 	}
 	return result, nil
+}
+
+// tailnetAccessible decides whether an authenticated identity may enter a
+// tailnet. A tailnet bound to an organization is a hard boundary: identities
+// of other organizations never see it, regardless of its IAM policy. Within
+// the organization, a non-empty IAM policy further restricts access; an empty
+// one admits every member of the organization. The boundary cuts both ways:
+// an identity carrying an organization only ever sees its organization's
+// tailnets, so a membership maps to exactly one tailnet.
+func tailnetAccessible(orgs config.Organizations, t domain.Tailnet, u *auth.User) (bool, error) {
+	identity := &domain.Identity{UserID: u.ID, Email: u.Name, Attr: u.Attr}
+
+	if t.Organization != "" {
+		if !orgs.Enabled() || u.Org == "" || t.Organization != u.Org {
+			return false, nil
+		}
+		policy := t.IAMPolicy.Get()
+		if isEmptyIAMPolicy(policy) {
+			return true, nil
+		}
+		return policy.EvaluatePolicy(identity)
+	}
+
+	if orgs.Enabled() && u.Org != "" {
+		return false, nil
+	}
+
+	return t.IAMPolicy.Get().EvaluatePolicy(identity)
+}
+
+func isEmptyIAMPolicy(p *domain.IAMPolicy) bool {
+	return len(p.Subs) == 0 && len(p.Emails) == 0 && len(p.Filters) == 0
+}
+
+// syncOrgRoles reflects the identity's organization roles into the IAM
+// policies of its organization's tailnets, so that admin role claims from the
+// identity provider translate into tailnet-admin permissions.
+func (h *AuthenticationHandlers) syncOrgRoles(ctx context.Context, u *auth.User) error {
+	orgs := h.config.Auth.Organizations
+	if !orgs.Enabled() || orgs.RolesClaim == "" || u.Org == "" {
+		return nil
+	}
+
+	isAdmin := false
+	for _, role := range u.Roles {
+		for _, adminRole := range orgs.AdminRoles {
+			if role == adminRole {
+				isAdmin = true
+			}
+		}
+	}
+
+	tailnets, err := h.repository.ListTailnetsByOrganization(ctx, u.Org)
+	if err != nil {
+		return err
+	}
+
+	for _, t := range tailnets {
+		policy := t.IAMPolicy.Get()
+		current, hasRole := policy.Roles[u.Name]
+
+		var updated *domain.IAMPolicy
+		if isAdmin && current != domain.UserRoleAdmin {
+			updated = &domain.IAMPolicy{Subs: policy.Subs, Emails: policy.Emails, Filters: policy.Filters, Roles: map[string]domain.UserRole{}}
+			for k, v := range policy.Roles {
+				updated.Roles[k] = v
+			}
+			updated.Roles[u.Name] = domain.UserRoleAdmin
+		}
+		if !isAdmin && hasRole && current == domain.UserRoleAdmin {
+			updated = &domain.IAMPolicy{Subs: policy.Subs, Emails: policy.Emails, Filters: policy.Filters, Roles: map[string]domain.UserRole{}}
+			for k, v := range policy.Roles {
+				updated.Roles[k] = v
+			}
+			delete(updated.Roles, u.Name)
+		}
+
+		if updated != nil {
+			t := t
+			t.IAMPolicy = domain.NewHuJSON(updated)
+			if err := h.repository.SaveTailnet(ctx, &t); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (h *AuthenticationHandlers) exchangeUser(code string) (*auth.User, error) {
@@ -596,13 +776,15 @@ func (h *AuthenticationHandlers) exchangeUser(code string) (*auth.User, error) {
 	return user, nil
 }
 
+// The OAuth state is sealed with a server-held key so it cannot be forged or
+// tampered with while it travels through the identity provider redirect.
 func (h *AuthenticationHandlers) createState(flow AuthFlow, key string) (string, error) {
-	stateMap := oauthState{Key: key, Flow: flow}
+	stateMap := oauthState{Key: key, Flow: flow, ExpiresAt: time.Now().Add(authSessionLifetime)}
 	marshal, err := json.Marshal(&stateMap)
 	if err != nil {
 		return "", err
 	}
-	return base58.FastBase58Encoding(marshal), nil
+	return base58.FastBase58Encoding(h.sessionKey.Seal(marshal)), nil
 }
 
 func (h *AuthenticationHandlers) readState(s string) (*oauthState, error) {
@@ -611,9 +793,19 @@ func (h *AuthenticationHandlers) readState(s string) (*oauthState, error) {
 		return nil, err
 	}
 
+	plain, ok := h.sessionKey.Open(decodedState)
+	if !ok {
+		return nil, fmt.Errorf("invalid state")
+	}
+
 	var state = &oauthState{}
-	if err := json.Unmarshal(decodedState, state); err != nil {
+	if err := json.Unmarshal(plain, state); err != nil {
 		return nil, err
 	}
+
+	if state.ExpiresAt.IsZero() || time.Now().After(state.ExpiresAt) {
+		return nil, fmt.Errorf("state expired")
+	}
+
 	return state, nil
 }

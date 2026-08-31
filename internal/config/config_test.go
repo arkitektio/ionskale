@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -127,4 +128,107 @@ func TestExpandEnvVars(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLoadConfigOrganizations(t *testing.T) {
+	tempFile, err := os.CreateTemp("", "config-*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+
+	yamlContent := `
+public_addr: "ionscale.localtest.me:443"
+stun_public_addr: "ionscale.localtest.me:3478"
+
+auth:
+  organizations:
+    claim: "org"
+    roles_claim: "roles"
+    admin_roles: ["admin"]
+    required: true
+`
+	_, err = tempFile.Write([]byte(yamlContent))
+	require.NoError(t, err)
+	tempFile.Close()
+
+	config, err := LoadConfig(tempFile.Name())
+	require.NoError(t, err)
+
+	orgs := config.Auth.Organizations
+	require.True(t, orgs.Enabled())
+	require.Equal(t, "org", orgs.Claim)
+	require.Equal(t, "roles", orgs.RolesClaim)
+	require.Equal(t, []string{"admin"}, orgs.AdminRoles)
+	require.True(t, orgs.Required)
+
+	require.False(t, Organizations{}.Enabled())
+}
+
+func TestLoadConfigTailnetDefaults(t *testing.T) {
+	tempFile, err := os.CreateTemp("", "config-*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+
+	yamlContent := `
+public_addr: "ionscale.localtest.me:443"
+stun_public_addr: "ionscale.localtest.me:3478"
+
+tailnets:
+  machine_key_expiry: 24h
+  machine_authorization: true
+  default_acl_policy: |
+    {
+      "acls": [
+        { "action": "accept", "src": ["*"], "dst": ["*:*"] }
+      ]
+    }
+`
+	_, err = tempFile.Write([]byte(yamlContent))
+	require.NoError(t, err)
+	tempFile.Close()
+
+	config, err := LoadConfig(tempFile.Name())
+	require.NoError(t, err)
+
+	require.Equal(t, 24*time.Hour, config.Tailnets.MachineKeyExpiry.Std())
+	require.Equal(t, 24*time.Hour, MachineKeyExpiry())
+	require.True(t, config.Tailnets.MachineAuthorization)
+	require.NotEmpty(t, config.Tailnets.DefaultACLPolicy)
+}
+
+func TestLoadConfigTailnetDefaultsInvalidACL(t *testing.T) {
+	tempFile, err := os.CreateTemp("", "config-*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+
+	yamlContent := `
+public_addr: "ionscale.localtest.me:443"
+stun_public_addr: "ionscale.localtest.me:3478"
+
+tailnets:
+  default_acl_policy: "{ not valid hujson !"
+`
+	_, err = tempFile.Write([]byte(yamlContent))
+	require.NoError(t, err)
+	tempFile.Close()
+
+	_, err = LoadConfig(tempFile.Name())
+	require.Error(t, err)
+}
+
+func TestMachineKeyExpiryDefault(t *testing.T) {
+	tempFile, err := os.CreateTemp("", "config-*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+
+	yamlContent := `
+public_addr: "ionscale.localtest.me:443"
+stun_public_addr: "ionscale.localtest.me:3478"
+`
+	_, err = tempFile.Write([]byte(yamlContent))
+	require.NoError(t, err)
+	tempFile.Close()
+
+	_, err = LoadConfig(tempFile.Name())
+	require.NoError(t, err)
+	require.Equal(t, 180*24*time.Hour, MachineKeyExpiry())
 }

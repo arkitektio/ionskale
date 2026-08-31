@@ -188,9 +188,56 @@ auth:
     emails: ["admin@example.com"]
     subs: ["subject123"]
     filters: ["domain == example.com"]
+
+  # Organization-scoped tailnets (optional)
+  # When a claim is configured, every OIDC login is resolved to a single
+  # organization and a tailnet bound to an organization is only ever offered
+  # to identities of that same organization, regardless of its IAM policy.
+  # The boundary cuts both ways: an identity carrying an organization only
+  # sees its organization's tailnets, so a membership maps to exactly one
+  # tailnet and interactive logins complete without a tailnet picker. Logins
+  # from an organization without a tailnet are refused; tailnets are never
+  # created implicitly at login — provision them through the API/CLI when an
+  # organization is created.
+  organizations:
+    # OIDC claim (id_token first, then userinfo) holding the organization
+    # identifier; setting it enables organization scoping
+    claim: "org"
+    # Claim holding the identity's role identifiers within the organization
+    roles_claim: "roles"
+    # Role values that grant tailnet-admin on the organization's tailnets
+    admin_roles: ["admin"]
+    # Reject logins whose identity carries no organization claim
+    required: false
 ```
 
 For more details about configuring OIDC authentication, see [OIDC Configuration](./auth-oidc.md).
+
+Tailnets are bound to an organization at creation time with `ionscale tailnets create --name <name> --org <organization-id>` (or the equivalent `CreateTailnet` API call with the `organization` field, e.g. issued by the identity-provider backend when it creates an organization); at most one tailnet may exist per organization (`CreateTailnet` returns `AlreadyExists` otherwise, making provisioning idempotent). `ionscale tailnets list --org <id>` filters by organization. The organization claim and roles are also available in IAM policy filter expressions as `org` and `roles` (e.g. `org == 42` or `roles contains "admin"`).
+
+When the identity provider revokes a membership, revoke the account's access immediately with `ionscale users revoke-account --external-id <oidc-subject> [--org <id>]` (RPC `RevokeAccount`): it deletes the account's users, machines, api keys and auth keys in the affected tailnets and pushes a netmap update, instead of waiting for machine keys to expire.
+
+### Tailnet defaults
+
+Deployment-level defaults applied to tailnets and machines:
+
+```yaml
+tailnets:
+  # how long a machine's node key stays valid before re-authentication
+  machine_key_expiry: 4320h   # default: 180 days
+  # enable machine authorization on newly created tailnets
+  machine_authorization: false
+  # optional HuJSON ACL policy for newly created tailnets; when empty the
+  # built-in allow-all default is used
+  default_acl_policy: |
+    {
+      "acls": [
+        { "action": "accept", "src": ["*"], "dst": ["*:*"] }
+      ]
+    }
+```
+
+Security-relevant actions — logins (and refusals), tailnet lifecycle, IAM/ACL changes, key issuance and revocations — are emitted as structured events on the `audit` logger; with `logging.format: json` they can be filtered and shipped by the `logger` field.
 
 ### DNS Configuration
 
@@ -362,6 +409,17 @@ auth:
     subs: ["subject-id-12345"]
     # Users matching expression filters
     filters: ["domain == example.com"]
+
+  # Organization-scoped tailnets
+  organizations:
+    # OIDC claim holding the organization identifier; enables org scoping
+    claim: "org"
+    # Claim holding the identity's organization roles
+    roles_claim: "roles"
+    # Role values granting tailnet-admin
+    admin_roles: ["admin"]
+    # Reject logins without an organization claim
+    required: false
 
 # DNS configuration
 dns:

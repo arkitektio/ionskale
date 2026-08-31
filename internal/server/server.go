@@ -15,6 +15,7 @@ import (
 	"github.com/jsiebens/ionscale/internal/dns"
 	"github.com/jsiebens/ionscale/internal/domain"
 	"github.com/jsiebens/ionscale/internal/handlers"
+	ikey "github.com/jsiebens/ionscale/internal/key"
 	"github.com/jsiebens/ionscale/internal/service"
 	"github.com/jsiebens/ionscale/internal/stunserver"
 	"github.com/jsiebens/ionscale/internal/templates"
@@ -147,10 +148,15 @@ func Start(ctx context.Context, c *config.Config) error {
 	noiseHandlers := handlers.NewNoiseHandlers(serverKey.ControlKey, createPeerHandler)
 	oidcConfigHandlers := handlers.NewOIDCConfigHandlers(c, repository)
 
+	// Ephemeral key sealing the OAuth state and the post-callback auth
+	// session; rotating it on restart only invalidates in-flight logins.
+	sessionKey := ikey.NewServerKey()
+
 	authenticationHandlers := handlers.NewAuthenticationHandlers(
 		c,
 		authProvider,
 		systemIAMPolicy,
+		sessionKey,
 		repository,
 	)
 
@@ -176,10 +182,17 @@ func Start(ctx context.Context, c *config.Config) error {
 	webMux.GET("/.well-known/openid-configuration", oidcConfigHandlers.OpenIDConfig)
 
 	csrf := middleware.CSRFWithConfig(middleware.CSRFConfig{TokenLookup: "form:_csrf"})
-	webMux.GET("/a/:flow/:key", authenticationHandlers.StartAuth, csrf)
-	webMux.POST("/a/:flow/:key", authenticationHandlers.ProcessAuth, csrf)
-	webMux.GET("/a/callback", authenticationHandlers.Callback, csrf)
-	webMux.POST("/a/callback", authenticationHandlers.EndAuth, csrf)
+	// Throttle the interactive auth endpoints: they accept credentials (auth
+	// keys) and drive the OIDC flow, so brute-forcing must stay expensive.
+	authRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
+		Rate:      10,
+		Burst:     30,
+		ExpiresIn: 3 * time.Minute,
+	}))
+	webMux.GET("/a/:flow/:key", authenticationHandlers.StartAuth, csrf, authRateLimiter)
+	webMux.POST("/a/:flow/:key", authenticationHandlers.ProcessAuth, csrf, authRateLimiter)
+	webMux.GET("/a/callback", authenticationHandlers.Callback, csrf, authRateLimiter)
+	webMux.POST("/a/callback", authenticationHandlers.EndAuth, csrf, authRateLimiter)
 	webMux.GET("/a/success", authenticationHandlers.Success, csrf)
 	webMux.GET("/a/error", authenticationHandlers.Error, csrf)
 
@@ -279,9 +292,15 @@ func setupAuthProvider(config config.Auth) (auth.Provider, *domain.IAMPolicy, er
 		return nil, &domain.IAMPolicy{}, nil
 	}
 
-	authProvider, err := auth.NewOIDCProvider(&config.Provider)
+	authProvider, err := auth.NewOIDCProvider(&config.Provider, config.Organizations)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	for _, f := range config.SystemAdminPolicy.Filters {
+		if f == "*" {
+			zap.L().Warn("auth.system_admins.filters contains the wildcard filter '*': EVERY identity authenticated by the OIDC provider is granted system admin access; scope this filter down unless this is intentional")
+		}
 	}
 
 	return authProvider, &domain.IAMPolicy{

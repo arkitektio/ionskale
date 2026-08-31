@@ -23,11 +23,13 @@ import (
 const (
 	defaultKeepAliveInterval = 1 * time.Minute
 	defaultMagicDNSSuffix    = "ionscale.net"
+	defaultMachineKeyExpiry  = 180 * 24 * time.Hour
 )
 
 var (
 	keepAliveInterval     = defaultKeepAliveInterval
 	magicDNSSuffix        = defaultMagicDNSSuffix
+	machineKeyExpiry      = defaultMachineKeyExpiry
 	dnsProviderConfigured = false
 )
 
@@ -37,6 +39,10 @@ func KeepAliveInterval() time.Duration {
 
 func MagicDNSSuffix() string {
 	return magicDNSSuffix
+}
+
+func MachineKeyExpiry() time.Duration {
+	return machineKeyExpiry
 }
 
 func DNSProviderConfigured() bool {
@@ -92,6 +98,11 @@ func LoadConfig(path string) (*Config, error) {
 	keepAliveInterval = time.Duration(cfg.PollNet.KeepAliveInterval)
 	magicDNSSuffix = cfg.DNS.MagicDNSSuffix
 
+	if cfg.Tailnets.MachineKeyExpiry <= 0 {
+		cfg.Tailnets.MachineKeyExpiry = Duration(defaultMachineKeyExpiry)
+	}
+	machineKeyExpiry = time.Duration(cfg.Tailnets.MachineKeyExpiry)
+
 	if cfg.DNS.Provider.Zone != "" {
 		dnsProviderConfigured = true
 	}
@@ -133,6 +144,9 @@ func defaultConfig() *Config {
 		Logging: Logging{
 			Level: "info",
 		},
+		Tailnets: Tailnets{
+			MachineKeyExpiry: Duration(defaultMachineKeyExpiry),
+		},
 	}
 }
 
@@ -153,6 +167,7 @@ type Config struct {
 	Keys              Keys     `json:"keys,omitempty"`
 	Database          Database `json:"database,omitempty"`
 	Auth              Auth     `json:"auth,omitempty"`
+	Tailnets          Tailnets `json:"tailnets,omitempty"`
 	DNS               DNS      `json:"dns,omitempty"`
 	DERP              DERP     `json:"derp,omitempty"`
 	Logging           Logging  `json:"logging,omitempty"`
@@ -203,6 +218,29 @@ type Keys struct {
 type Auth struct {
 	Provider          AuthProvider      `json:"provider,omitempty"`
 	SystemAdminPolicy SystemAdminPolicy `json:"system_admins"`
+	Organizations     Organizations     `json:"organizations,omitempty"`
+}
+
+// Organizations enables organization-scoped tailnets. When a claim is
+// configured, every OIDC identity is resolved to a single organization and a
+// tailnet carrying an organization is only ever offered to identities of that
+// same organization, regardless of its IAM policy.
+type Organizations struct {
+	// Claim is the OIDC claim (id_token first, then userinfo) holding the
+	// organization identifier. Setting it turns organization scoping on.
+	Claim string `json:"claim,omitempty"`
+	// RolesClaim is the claim holding the identity's role identifiers within
+	// the organization.
+	RolesClaim string `json:"roles_claim,omitempty"`
+	// AdminRoles lists the role values that grant tailnet-admin on the
+	// organization's tailnets.
+	AdminRoles []string `json:"admin_roles,omitempty"`
+	// Required rejects logins whose identity carries no organization claim.
+	Required bool `json:"required,omitempty"`
+}
+
+func (o Organizations) Enabled() bool {
+	return o.Claim != ""
 }
 
 type AuthProvider struct {
@@ -210,6 +248,20 @@ type AuthProvider struct {
 	ClientID     string   `json:"client_id"`
 	ClientSecret string   `json:"client_secret"`
 	Scopes       []string `json:"additional_scopes" `
+}
+
+// Tailnets holds deployment-level defaults applied to tailnets and machines.
+type Tailnets struct {
+	// MachineKeyExpiry is how long a machine's node key stays valid before
+	// the machine must re-authenticate.
+	MachineKeyExpiry Duration `json:"machine_key_expiry,omitempty"`
+	// MachineAuthorization enables machine authorization on newly created
+	// tailnets when the create request does not enable it itself.
+	MachineAuthorization bool `json:"machine_authorization,omitempty"`
+	// DefaultACLPolicy is an optional HuJSON ACL policy applied to newly
+	// created tailnets when the create request carries none; when empty the
+	// built-in allow-all default is used.
+	DefaultACLPolicy string `json:"default_acl_policy,omitempty"`
 }
 
 type DNS struct {
@@ -243,6 +295,12 @@ type DERPServer struct {
 }
 
 func (c *Config) Validate() (*Config, error) {
+	if c.Tailnets.DefaultACLPolicy != "" {
+		if _, err := domain.ParseHuJson[domain.ACLPolicy](c.Tailnets.DefaultACLPolicy); err != nil {
+			return nil, fmt.Errorf("tailnets.default_acl_policy is not a valid ACL policy: %w", err)
+		}
+	}
+
 	publicWebUrl, webHost, webPort, err := validatePublicAddr(c.PublicAddr)
 	if err != nil {
 		return nil, fmt.Errorf("web public addr: %w", err)
