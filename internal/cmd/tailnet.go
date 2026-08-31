@@ -3,16 +3,16 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/bufbuild/connect-go"
 	idomain "github.com/jsiebens/ionscale/internal/domain"
 	"github.com/jsiebens/ionscale/pkg/client/ionscale"
-	"github.com/jsiebens/ionscale/pkg/defaults"
 	api "github.com/jsiebens/ionscale/pkg/gen/ionscale/v1"
 	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
-	"os"
-	"strings"
 	"tailscale.com/tailcfg"
 )
 
@@ -56,16 +56,19 @@ func listTailnetsCommand() *cobra.Command {
 		SilenceUsage: true,
 	})
 
+	var org string
+	command.Flags().StringVar(&org, "org", "", "Only list tailnets bound to this organization")
+
 	command.RunE = func(cmd *cobra.Command, args []string) error {
-		resp, err := tc.Client().ListTailnets(cmd.Context(), connect.NewRequest(&api.ListTailnetsRequest{}))
+		resp, err := tc.Client().ListTailnets(cmd.Context(), connect.NewRequest(&api.ListTailnetsRequest{Organization: org}))
 
 		if err != nil {
 			return err
 		}
 
-		tbl := table.New("ID", "NAME")
+		tbl := table.New("ID", "NAME", "ORG")
 		for _, tailnet := range resp.Msg.Tailnet {
-			tbl.AddRow(tailnet.Id, tailnet.Name)
+			tbl.AddRow(tailnet.Id, tailnet.Name, tailnet.Organization)
 		}
 		tbl.Print()
 
@@ -85,10 +88,12 @@ func createTailnetsCommand() *cobra.Command {
 	var name string
 	var domain string
 	var email string
+	var org string
 
 	command.Flags().StringVarP(&name, "name", "n", "", "")
 	command.Flags().StringVar(&domain, "domain", "", "")
 	command.Flags().StringVar(&email, "email", "", "")
+	command.Flags().StringVar(&org, "org", "", "Bind this tailnet to an organization; only identities carrying this organization claim can join it")
 
 	command.PreRunE = func(cmd *cobra.Command, args []string) error {
 		if name == "" {
@@ -102,8 +107,9 @@ func createTailnetsCommand() *cobra.Command {
 
 	command.RunE = func(cmd *cobra.Command, args []string) error {
 
-		dnsConfig := defaults.DefaultDNSConfig()
-		aclPolicy := defaults.DefaultACLPolicy().Marshal()
+		// leave ACL policy and DNS config unset so the server applies its
+		// configured defaults; sending client-side defaults would let a stale
+		// client binary override them
 		iamPolicy := "{}"
 
 		if len(domain) != 0 {
@@ -132,18 +138,17 @@ func createTailnetsCommand() *cobra.Command {
 		}
 
 		resp, err := tc.Client().CreateTailnet(cmd.Context(), connect.NewRequest(&api.CreateTailnetRequest{
-			Name:      name,
-			IamPolicy: iamPolicy,
-			AclPolicy: aclPolicy,
-			DnsConfig: dnsConfig,
+			Name:         name,
+			IamPolicy:    iamPolicy,
+			Organization: org,
 		}))
 
 		if err != nil {
 			return err
 		}
 
-		tbl := table.New("ID", "NAME")
-		tbl.AddRow(resp.Msg.Tailnet.Id, resp.Msg.Tailnet.Name)
+		tbl := table.New("ID", "NAME", "ORG")
+		tbl.AddRow(resp.Msg.Tailnet.Id, resp.Msg.Tailnet.Name, resp.Msg.Tailnet.Organization)
 		tbl.Print()
 
 		return nil

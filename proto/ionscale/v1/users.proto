@@ -23,3 +23,16 @@ message DeleteUserRequest {
 }
 
 message DeleteUserResponse {}
+
+message RevokeAccountRequest {
+  // the account's external id: the OIDC subject as issued by the identity
+  // provider
+  string external_id = 1;
+  // when set, only users in tailnets bound to this organization are revoked
+  string organization = 2;
+}
+
+message RevokeAccountResponse {
+  // the tailnets the account was revoked from
+  repeated uint64 tailnet_ids = 1;
+}

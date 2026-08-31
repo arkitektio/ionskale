@@ -3,11 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/bufbuild/connect-go"
+	"github.com/jsiebens/ionscale/internal/audit"
 	"github.com/jsiebens/ionscale/internal/domain"
 	api "github.com/jsiebens/ionscale/pkg/gen/ionscale/v1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"time"
 )
 
 func (s *Service) GetAuthKey(ctx context.Context, req *connect.Request[api.GetAuthKeyRequest]) (*connect.Response[api.GetAuthKeyResponse], error) {
@@ -167,6 +170,8 @@ func (s *Service) CreateAuthKey(ctx context.Context, req *connect.Request[api.Cr
 		return nil, logError(err)
 	}
 
+	audit.Log("auth_key.created", append(audit.Tailnet(tailnet), audit.Actor(principal), zap.Uint64("auth_key_id", authKey.ID), zap.Strings("tags", authKey.Tags))...)
+
 	response := api.CreateAuthKeyResponse{
 		Value: v,
 		AuthKey: &api.AuthKey{
@@ -197,12 +202,15 @@ func (s *Service) DeleteAuthKey(ctx context.Context, req *connect.Request[api.De
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("auth key not found"))
 	}
 
-	if !principal.IsSystemAdmin() && !principal.IsTailnetAdmin(key.UserID) {
+	if !principal.IsSystemAdmin() && !principal.IsTailnetAdmin(key.TailnetID) {
 		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("permission denied"))
 	}
 
 	if _, err := s.repository.DeleteAuthKey(ctx, req.Msg.AuthKeyId); err != nil {
 		return nil, logError(err)
 	}
+
+	audit.Log("auth_key.deleted", audit.Actor(principal), zap.Uint64("auth_key_id", req.Msg.AuthKeyId), zap.Uint64("tailnet_id", key.TailnetID))
+
 	return connect.NewResponse(&api.DeleteAuthKeyResponse{}), nil
 }

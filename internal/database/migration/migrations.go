@@ -22,6 +22,7 @@ func Migrations() []*gormigrate.Migration {
 		m202402120800_user_last_authenticated(),
 		m202403130830_json_to_text(),
 		m202502150830_use_hostname(),
+		m202608311000_add_tailnet_organization(),
 	}
 	return migrations
 }

@@ -18,6 +18,37 @@ func userCommands() *cobra.Command {
 
 	command.AddCommand(listUsersCommand())
 	command.AddCommand(deleteUserCommand())
+	command.AddCommand(revokeAccountCommand())
+
+	return command
+}
+
+func revokeAccountCommand() *cobra.Command {
+	command, tc := prepareCommand(false, &cobra.Command{
+		Use:          "revoke-account",
+		Short:        "Revoke an account's access: delete its users, machines and keys across tailnets, optionally restricted to one organization",
+		SilenceUsage: true,
+	})
+
+	var externalID string
+	var org string
+
+	command.Flags().StringVar(&externalID, "external-id", "", "The account's external id (the OIDC subject issued by the identity provider).")
+	command.Flags().StringVar(&org, "org", "", "Only revoke access to tailnets bound to this organization.")
+
+	_ = command.MarkFlagRequired("external-id")
+
+	command.RunE = func(cmd *cobra.Command, args []string) error {
+		req := api.RevokeAccountRequest{ExternalId: externalID, Organization: org}
+		resp, err := tc.Client().RevokeAccount(cmd.Context(), connect.NewRequest(&req))
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Account revoked from %d tailnet(s).\n", len(resp.Msg.TailnetIds))
+
+		return nil
+	}
 
 	return command
 }

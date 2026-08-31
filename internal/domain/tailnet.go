@@ -12,6 +12,7 @@ import (
 type Tailnet struct {
 	ID                          uint64 `gorm:"primary_key"`
 	Name                        string
+	Organization                string `gorm:"index"`
 	DNSConfig                   DNSConfig
 	IAMPolicy                   HuJSON[IAMPolicy]
 	ACLPolicy                   HuJSON[ACLPolicy]
@@ -27,6 +28,7 @@ type TailnetRepository interface {
 	GetTailnet(ctx context.Context, id uint64) (*Tailnet, error)
 	GetTailnetByName(ctx context.Context, name string) (*Tailnet, error)
 	ListTailnets(ctx context.Context) ([]Tailnet, error)
+	ListTailnetsByOrganization(ctx context.Context, organization string) ([]Tailnet, error)
 	DeleteTailnet(ctx context.Context, id uint64) error
 }
 
@@ -93,6 +95,15 @@ func (r *repository) GetTailnetByName(ctx context.Context, name string) (*Tailne
 	}
 
 	return &t, nil
+}
+
+func (r *repository) ListTailnetsByOrganization(ctx context.Context, organization string) ([]Tailnet, error) {
+	var tailnets = []Tailnet{}
+	tx := r.withContext(ctx).Find(&tailnets, "organization = ?", organization)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return tailnets, nil
 }
 
 func (r *repository) ListTailnets(ctx context.Context) ([]Tailnet, error) {

@@ -1,4 +1,4 @@
-FROM golang:1.24-bullseye as builder
+FROM golang:1.24-bookworm as builder
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY . ./
 
 RUN go build -v -o ionscale cmd/ionscale/main.go
 
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     ca-certificates && \
     rm -rf /var/lib/apt/lists/*

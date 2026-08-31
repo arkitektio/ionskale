@@ -59,7 +59,7 @@ func ParseSystemAdminToken(privKey key.ServerPrivate, versionedToken string) (*I
 		return nil, fmt.Errorf("error decoding nonce bytes: %w", err)
 	}
 	if len(info.NonceBytes) != nonceLength {
-		return nil, errors.New("nonce has incorrect length, must be 32 bytes")
+		return nil, fmt.Errorf("nonce has incorrect length, must be %d bytes", nonceLength)
 	}
 
 	if info.CreationTime.IsZero() {

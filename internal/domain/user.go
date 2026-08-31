@@ -44,6 +44,7 @@ type UserRepository interface {
 	GetUser(ctx context.Context, userID uint64) (*User, error)
 	DeleteUser(ctx context.Context, userID uint64) error
 	ListUsers(ctx context.Context, tailnetID uint64) (Users, error)
+	ListUsersByAccount(ctx context.Context, accountID uint64) (Users, error)
 	DeleteUsersByTailnet(ctx context.Context, tailnetID uint64) error
 	SetUserLastAuthenticated(ctx context.Context, userID uint64, timestamp time.Time) error
 }
@@ -81,6 +82,18 @@ func (r *repository) ListUsers(ctx context.Context, tailnetID uint64) (Users, er
 	var users = []User{}
 
 	tx := r.withContext(ctx).Where("tailnet_id = ? AND user_type = ?", tailnetID, UserTypePerson).Find(&users)
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return users, nil
+}
+
+func (r *repository) ListUsersByAccount(ctx context.Context, accountID uint64) (Users, error) {
+	var users = []User{}
+
+	tx := r.withContext(ctx).Preload("Tailnet").Where("account_id = ?", accountID).Find(&users)
 
 	if tx.Error != nil {
 		return nil, tx.Error

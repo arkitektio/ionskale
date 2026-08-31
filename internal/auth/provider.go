@@ -8,5 +8,11 @@ type Provider interface {
 type User struct {
 	ID   string
 	Name string
-	Attr map[string]interface{}
+	// Org is the organization identifier resolved from the configured
+	// organization claim; empty when organization scoping is disabled or the
+	// identity carries no organization.
+	Org string
+	// Roles are the identity's role identifiers within its organization.
+	Roles []string
+	Attr  map[string]interface{}
 }

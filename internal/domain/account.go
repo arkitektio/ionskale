@@ -10,6 +10,7 @@ import (
 
 type AccountRepository interface {
 	GetAccount(ctx context.Context, accountID uint64) (*Account, error)
+	GetAccountByExternalID(ctx context.Context, externalID string) (*Account, error)
 	GetOrCreateAccount(ctx context.Context, externalID, loginName string) (*Account, bool, error)
 	SetAccountLastAuthenticated(ctx context.Context, accountID uint64) error
 }
@@ -39,6 +40,21 @@ func (r *repository) GetOrCreateAccount(ctx context.Context, externalID, loginNa
 func (r *repository) GetAccount(ctx context.Context, id uint64) (*Account, error) {
 	var account Account
 	tx := r.withContext(ctx).Take(&account, "id = ?", id)
+
+	if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return &account, nil
+}
+
+func (r *repository) GetAccountByExternalID(ctx context.Context, externalID string) (*Account, error) {
+	var account Account
+	tx := r.withContext(ctx).Take(&account, "external_id = ?", externalID)
 
 	if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return nil, nil

@@ -196,7 +196,7 @@ func ToNode(capVer tailcfg.CapabilityVersion, m *domain.Machine, tailnet *domain
 
 		// ionscale has no support for Funnel yet, so remove Funnel attribute if set via ACL policy
 		{
-			slices.DeleteFunc(capabilities, func(c tailcfg.NodeCapability) bool { return c == tailcfg.NodeAttrFunnel })
+			capabilities = slices.DeleteFunc(capabilities, func(c tailcfg.NodeCapability) bool { return c == tailcfg.NodeAttrFunnel })
 			delete(capMap, tailcfg.NodeAttrFunnel)
 		}
 
