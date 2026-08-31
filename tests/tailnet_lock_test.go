@@ -15,9 +15,14 @@ import (
 var (
 	tlpubRegex             = regexp.MustCompile(`tlpub:[0-9a-f]+`)
 	disablementSecretRegex = regexp.MustCompile(`disablement-secret:[0-9A-Fa-f]+`)
-	nodekeyRegex           = regexp.MustCompile(`nodekey:[0-9a-f]+`)
+	// the locked-out client prints the exact command to run on a trusted node:
+	// "tailscale lock sign nodekey:<hex> tlpub:<hex>"
+	signArgsRegex = regexp.MustCompile(`(nodekey:[0-9a-f]+) (tlpub:[0-9a-f]+)`)
 )
 
+// TestTailnetLock exercises the full tailnet-lock lifecycle end to end:
+// initializing the key authority, a later node being locked out until signed,
+// connectivity under lock, and disablement propagating to every node.
 func TestTailnetLock(t *testing.T) {
 	sc.Run(t, func(s *sc.Scenario) {
 		tailnet := s.CreateTailnet()
@@ -39,54 +44,60 @@ func TestTailnetLock(t *testing.T) {
 		secret := disablementSecretRegex.FindString(initOut + initErr)
 		require.NotEmpty(t, secret, "no disablement secret in: %s %s", initOut, initErr)
 
+		require.NoError(t, waitForLockStatus(initiator, "Tailnet lock is ENABLED"))
 		require.NoError(t, initiator.WaitFor(tsn.IsRunning()))
 
-		statusOut, _, err = initiator.Tailscale("lock", "status")
-		require.NoError(t, err)
-		require.Contains(t, statusOut, "Tailnet lock is ENABLED", "unexpected lock status: %s", statusOut)
-
-		// a second node joins after enablement; it is unsigned and must not
-		// see (or be seen by) the initiator until it is signed
+		// a second node joins after enablement: it registers, but is locked
+		// out and invisible to the initiator until a trusted key signs it
 		joiner := s.NewTailscaleNode()
-		require.NoError(t, joiner.Up(authKey))
+		joinerUpOut, joinerUpErr, err := joiner.Tailscale("up", "--login-server", "https://ionscale", "--authkey", authKey)
+		require.NoError(t, err, "joiner up failed: %s %s", joinerUpOut, joinerUpErr)
 
-		statusOut, _, err = joiner.Tailscale("lock", "status")
+		require.NoError(t, waitForLockStatus(joiner, "LOCKED OUT"))
+
+		lockedStatus, _, err := joiner.Tailscale("lock", "status")
 		require.NoError(t, err)
-		joinerKey := nodekeyRegex.FindString(statusOut)
-		if joinerKey == "" {
-			// fall back to the plain status output for the node key
-			nodeStatus, _, err := joiner.Tailscale("status", "--self", "--peers=false")
-			require.NoError(t, err)
-			joinerKey = nodekeyRegex.FindString(nodeStatus)
-		}
-		require.NotEmpty(t, joinerKey, "unable to determine joiner node key")
+		signArgs := signArgsRegex.FindStringSubmatch(lockedStatus)
+		require.Len(t, signArgs, 3, "no sign command in locked-out status: %s", lockedStatus)
 
-		// sign the joiner from the node holding the trusted lock key
-		signOut, signErr, err := initiator.Tailscale("lock", "sign", joinerKey)
-		require.NoError(t, err, "lock sign failed: %s %s", signOut, signErr)
+		// the unsigned node must not appear in the initiator's netmap
+		require.NoError(t, initiator.Check(tsn.PeerCount(0)))
 
+		// sign the joiner from the node holding the trusted lock key, using
+		// the exact command the locked-out client printed
+		signOut, signErrOut, err := initiator.Tailscale("lock", "sign", signArgs[1], signArgs[2])
+		require.NoError(t, err, "lock sign failed: %s %s", signOut, signErrOut)
+
+		// both nodes now see each other and traffic flows under lock
+		require.NoError(t, waitForLockStatus(joiner, "This node is accessible under tailnet lock"))
+		require.NoError(t, joiner.WaitFor(tsn.IsRunning()))
 		require.NoError(t, initiator.WaitFor(tsn.PeerCount(1)))
 		require.NoError(t, joiner.WaitFor(tsn.PeerCount(1)))
+		require.NoError(t, initiator.Ping(joiner.IPv4()))
 
-		// disable the lock with the disablement secret
-		disableOut, disableErr, err := initiator.Tailscale("lock", "disable", secret)
-		require.NoError(t, err, "lock disable failed: %s %s", disableOut, disableErr)
+		// disable the lock with the disablement secret; every node verifies
+		// the secret via bootstrap and disables its local authority
+		disableOut, disableErrOut, err := initiator.Tailscale("lock", "disable", secret)
+		require.NoError(t, err, "lock disable failed: %s %s", disableOut, disableErrOut)
 
-		require.NoError(t, waitForLockDisabled(initiator))
+		require.NoError(t, waitForLockStatus(initiator, "Tailnet lock is NOT enabled"))
+		require.NoError(t, waitForLockStatus(joiner, "Tailnet lock is NOT enabled"))
 		require.NoError(t, initiator.WaitFor(tsn.PeerCount(1)))
 		require.NoError(t, joiner.WaitFor(tsn.PeerCount(1)))
+		require.NoError(t, initiator.Ping(joiner.IPv4()))
 	})
 }
 
-func waitForLockDisabled(node *tsn.TailscaleNode) error {
+func waitForLockStatus(node *tsn.TailscaleNode, marker string) error {
 	var lastOut string
-	for i := 0; i < 30; i++ {
+	var lastErr error
+	for i := 0; i < 45; i++ {
 		out, _, err := node.Tailscale("lock", "status")
-		if err == nil && !strings.Contains(out, "ENABLED") {
+		if err == nil && strings.Contains(out, marker) {
 			return nil
 		}
-		lastOut = out
+		lastOut, lastErr = out, err
 		time.Sleep(2 * time.Second)
 	}
-	return fmt.Errorf("tailnet lock still enabled: %s", lastOut)
+	return fmt.Errorf("lock status never contained %q; last output: %s (err: %v)", marker, lastOut, lastErr)
 }
