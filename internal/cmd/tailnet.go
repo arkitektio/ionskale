@@ -42,6 +42,8 @@ func tailnetCommand() *cobra.Command {
 	command.AddCommand(disableSSHCommand())
 	command.AddCommand(enableMachineAuthorizationCommand())
 	command.AddCommand(disableMachineAuthorizationCommand())
+	command.AddCommand(enableTailnetLockCommand())
+	command.AddCommand(disableTailnetLockCommand())
 	command.AddCommand(getDERPMap())
 	command.AddCommand(setDERPMap())
 	command.AddCommand(resetDERPMap())
@@ -454,6 +456,50 @@ func disableMachineAuthorizationCommand() *cobra.Command {
 		}
 
 		if _, err := tc.Client().DisableMachineAuthorization(cmd.Context(), connect.NewRequest(&req)); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	return command
+}
+
+func enableTailnetLockCommand() *cobra.Command {
+	command, tc := prepareCommand(true, &cobra.Command{
+		Use:          "enable-tailnet-lock",
+		Short:        "Grant nodes the tailnet-lock capability so 'tailscale lock init' can set up a key authority.",
+		SilenceUsage: true,
+	})
+
+	command.RunE = func(cmd *cobra.Command, args []string) error {
+		req := api.EnableTailnetLockRequest{
+			TailnetId: tc.TailnetID(),
+		}
+
+		if _, err := tc.Client().EnableTailnetLock(cmd.Context(), connect.NewRequest(&req)); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	return command
+}
+
+func disableTailnetLockCommand() *cobra.Command {
+	command, tc := prepareCommand(true, &cobra.Command{
+		Use:          "disable-tailnet-lock",
+		Short:        "Revoke the tailnet-lock capability. Refused while the key authority is active.",
+		SilenceUsage: true,
+	})
+
+	command.RunE = func(cmd *cobra.Command, args []string) error {
+		req := api.DisableTailnetLockRequest{
+			TailnetId: tc.TailnetID(),
+		}
+
+		if _, err := tc.Client().DisableTailnetLock(cmd.Context(), connect.NewRequest(&req)); err != nil {
 			return err
 		}
 

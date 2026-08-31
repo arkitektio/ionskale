@@ -37,6 +37,7 @@ type PollNetMapper struct {
 
 	prevSyncedPeerIDs   map[uint64]bool
 	prevDerpMapChecksum string
+	prevTKAChecksum     string
 
 	repository     domain.Repository
 	sessionManager core.PollMapSessionManager
@@ -64,6 +65,25 @@ func (h *PollNetMapper) CreateMapResponse(ctx context.Context, delta bool) (*Map
 	derpMap, err := m.Tailnet.GetDERPMap(ctx, domain.GetDefaultDERPMap())
 	if err != nil {
 		return nil, err
+	}
+
+	tkaState, err := h.repository.GetTailnetTKAState(ctx, m.TailnetID)
+	if err != nil {
+		return nil, err
+	}
+
+	// TKAInfo semantics: nil in an initial map means tailnet lock is off; nil
+	// in a delta map means "no change", so deltas only carry it when the
+	// state actually changed. Disabled tells nodes still running an authority
+	// to fetch the disablement secret.
+	var tkaInfo *tailcfg.TKAInfo
+	var tkaChecksum string
+	if tkaState.Enabled {
+		tkaInfo = &tailcfg.TKAInfo{Head: tkaState.Head}
+		tkaChecksum = "enabled:" + tkaState.Head
+	} else if tkaState.Disabled {
+		tkaInfo = &tailcfg.TKAInfo{Disabled: true}
+		tkaChecksum = "disabled"
 	}
 
 	prc := &primaryRoutesCollector{flagged: map[netip.Prefix]bool{}}
@@ -138,6 +158,7 @@ func (h *PollNetMapper) CreateMapResponse(ctx context.Context, delta bool) (*Map
 				DisableLogTail: true,
 			},
 		}
+		mapResponse.TKAInfo = tkaInfo
 	} else {
 		mapResponse = tailcfg.MapResponse{
 			Node:            node,
@@ -155,6 +176,10 @@ func (h *PollNetMapper) CreateMapResponse(ctx context.Context, delta bool) (*Map
 		if h.prevDerpMapChecksum != derpMap.Checksum {
 			mapResponse.DERPMap = &derpMap.DERPMap
 		}
+
+		if h.prevTKAChecksum != tkaChecksum {
+			mapResponse.TKAInfo = tkaInfo
+		}
 	}
 
 	if h.req.OmitPeers {
@@ -165,6 +190,7 @@ func (h *PollNetMapper) CreateMapResponse(ctx context.Context, delta bool) (*Map
 
 	h.prevSyncedPeerIDs = syncedPeerIDs
 	h.prevDerpMapChecksum = derpMap.Checksum
+	h.prevTKAChecksum = tkaChecksum
 
 	return &MapResponse{MapResponse: mapResponse, PacketFilter: filterRules}, nil
 }

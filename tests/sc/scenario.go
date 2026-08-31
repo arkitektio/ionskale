@@ -117,6 +117,11 @@ func (s *Scenario) EnableMachineAutorization(tailnetID uint64) {
 	require.NoError(s.t, err)
 }
 
+func (s *Scenario) EnableTailnetLock(tailnetID uint64) {
+	_, err := s.ionscaleClient.EnableTailnetLock(context.Background(), connect.NewRequest(&api.EnableTailnetLockRequest{TailnetId: tailnetID}))
+	require.NoError(s.t, err)
+}
+
 func (s *Scenario) GetMachineRoutes(machineID uint64) *api.MachineRoutes {
 	routes, err := s.ionscaleClient.GetMachineRoutes(context.Background(), connect.NewRequest(&api.GetMachineRoutesRequest{MachineId: machineID}))
 	require.NoError(s.t, err)

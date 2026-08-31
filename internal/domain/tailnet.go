@@ -21,6 +21,9 @@ type Tailnet struct {
 	FileSharingEnabled          bool
 	SSHEnabled                  bool
 	MachineAuthorizationEnabled bool
+	// TailnetLockEnabled grants nodes the tailnet-lock capability, allowing
+	// `tailscale lock init` to set up a key authority for this tailnet.
+	TailnetLockEnabled bool
 }
 
 type TailnetRepository interface {

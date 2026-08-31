@@ -33,6 +33,7 @@ type Tailnet struct {
 	SshEnabled                  bool                   `protobuf:"varint,8,opt,name=ssh_enabled,json=sshEnabled,proto3" json:"ssh_enabled,omitempty"`
 	MachineAuthorizationEnabled bool                   `protobuf:"varint,9,opt,name=machine_authorization_enabled,json=machineAuthorizationEnabled,proto3" json:"machine_authorization_enabled,omitempty"`
 	Organization                string                 `protobuf:"bytes,10,opt,name=organization,proto3" json:"organization,omitempty"`
+	TailnetLockEnabled          bool                   `protobuf:"varint,11,opt,name=tailnet_lock_enabled,json=tailnetLockEnabled,proto3" json:"tailnet_lock_enabled,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -135,6 +136,13 @@ func (x *Tailnet) GetOrganization() string {
 		return x.Organization
 	}
 	return ""
+}
+
+func (x *Tailnet) GetTailnetLockEnabled() bool {
+	if x != nil {
+		return x.TailnetLockEnabled
+	}
+	return false
 }
 
 type CreateTailnetRequest struct {
@@ -1603,11 +1611,171 @@ func (*DisableMachineAuthorizationResponse) Descriptor() ([]byte, []int) {
 	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{32}
 }
 
+type EnableTailnetLockRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TailnetId     uint64                 `protobuf:"varint,1,opt,name=tailnet_id,json=tailnetId,proto3" json:"tailnet_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnableTailnetLockRequest) Reset() {
+	*x = EnableTailnetLockRequest{}
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnableTailnetLockRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnableTailnetLockRequest) ProtoMessage() {}
+
+func (x *EnableTailnetLockRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnableTailnetLockRequest.ProtoReflect.Descriptor instead.
+func (*EnableTailnetLockRequest) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *EnableTailnetLockRequest) GetTailnetId() uint64 {
+	if x != nil {
+		return x.TailnetId
+	}
+	return 0
+}
+
+type EnableTailnetLockResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnableTailnetLockResponse) Reset() {
+	*x = EnableTailnetLockResponse{}
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnableTailnetLockResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnableTailnetLockResponse) ProtoMessage() {}
+
+func (x *EnableTailnetLockResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnableTailnetLockResponse.ProtoReflect.Descriptor instead.
+func (*EnableTailnetLockResponse) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{34}
+}
+
+type DisableTailnetLockRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TailnetId     uint64                 `protobuf:"varint,1,opt,name=tailnet_id,json=tailnetId,proto3" json:"tailnet_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DisableTailnetLockRequest) Reset() {
+	*x = DisableTailnetLockRequest{}
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisableTailnetLockRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisableTailnetLockRequest) ProtoMessage() {}
+
+func (x *DisableTailnetLockRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisableTailnetLockRequest.ProtoReflect.Descriptor instead.
+func (*DisableTailnetLockRequest) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *DisableTailnetLockRequest) GetTailnetId() uint64 {
+	if x != nil {
+		return x.TailnetId
+	}
+	return 0
+}
+
+type DisableTailnetLockResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DisableTailnetLockResponse) Reset() {
+	*x = DisableTailnetLockResponse{}
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisableTailnetLockResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisableTailnetLockResponse) ProtoMessage() {}
+
+func (x *DisableTailnetLockResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisableTailnetLockResponse.ProtoReflect.Descriptor instead.
+func (*DisableTailnetLockResponse) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{36}
+}
+
 var File_ionscale_v1_tailnets_proto protoreflect.FileDescriptor
 
 const file_ionscale_v1_tailnets_proto_rawDesc = "" +
 	"\n" +
-	"\x1aionscale/v1/tailnets.proto\x12\vionscale.v1\x1a\x15ionscale/v1/dns.proto\"\x9b\x03\n" +
+	"\x1aionscale/v1/tailnets.proto\x12\vionscale.v1\x1a\x15ionscale/v1/dns.proto\"\xcd\x03\n" +
 	"\aTailnet\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
@@ -1623,7 +1791,8 @@ const file_ionscale_v1_tailnets_proto_rawDesc = "" +
 	"sshEnabled\x12B\n" +
 	"\x1dmachine_authorization_enabled\x18\t \x01(\bR\x1bmachineAuthorizationEnabled\x12\"\n" +
 	"\forganization\x18\n" +
-	" \x01(\tR\forganization\"\x98\x03\n" +
+	" \x01(\tR\forganization\x120\n" +
+	"\x14tailnet_lock_enabled\x18\v \x01(\bR\x12tailnetLockEnabled\"\x98\x03\n" +
 	"\x14CreateTailnetRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
@@ -1715,7 +1884,15 @@ const file_ionscale_v1_tailnets_proto_rawDesc = "" +
 	"\"DisableMachineAuthorizationRequest\x12\x1d\n" +
 	"\n" +
 	"tailnet_id\x18\x01 \x01(\x04R\ttailnetId\"%\n" +
-	"#DisableMachineAuthorizationResponseB=Z;github.com/jsiebens/ionscale/pkg/gen/ionscale/v1;ionscalev1b\x06proto3"
+	"#DisableMachineAuthorizationResponse\"9\n" +
+	"\x18EnableTailnetLockRequest\x12\x1d\n" +
+	"\n" +
+	"tailnet_id\x18\x01 \x01(\x04R\ttailnetId\"\x1b\n" +
+	"\x19EnableTailnetLockResponse\":\n" +
+	"\x19DisableTailnetLockRequest\x12\x1d\n" +
+	"\n" +
+	"tailnet_id\x18\x01 \x01(\x04R\ttailnetId\"\x1c\n" +
+	"\x1aDisableTailnetLockResponseB=Z;github.com/jsiebens/ionscale/pkg/gen/ionscale/v1;ionscalev1b\x06proto3"
 
 var (
 	file_ionscale_v1_tailnets_proto_rawDescOnce sync.Once
@@ -1729,7 +1906,7 @@ func file_ionscale_v1_tailnets_proto_rawDescGZIP() []byte {
 	return file_ionscale_v1_tailnets_proto_rawDescData
 }
 
-var file_ionscale_v1_tailnets_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_ionscale_v1_tailnets_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_ionscale_v1_tailnets_proto_goTypes = []any{
 	(*Tailnet)(nil),                             // 0: ionscale.v1.Tailnet
 	(*CreateTailnetRequest)(nil),                // 1: ionscale.v1.CreateTailnetRequest
@@ -1764,13 +1941,17 @@ var file_ionscale_v1_tailnets_proto_goTypes = []any{
 	(*EnableMachineAuthorizationResponse)(nil),  // 30: ionscale.v1.EnableMachineAuthorizationResponse
 	(*DisableMachineAuthorizationRequest)(nil),  // 31: ionscale.v1.DisableMachineAuthorizationRequest
 	(*DisableMachineAuthorizationResponse)(nil), // 32: ionscale.v1.DisableMachineAuthorizationResponse
-	(*DNSConfig)(nil),                           // 33: ionscale.v1.DNSConfig
+	(*EnableTailnetLockRequest)(nil),            // 33: ionscale.v1.EnableTailnetLockRequest
+	(*EnableTailnetLockResponse)(nil),           // 34: ionscale.v1.EnableTailnetLockResponse
+	(*DisableTailnetLockRequest)(nil),           // 35: ionscale.v1.DisableTailnetLockRequest
+	(*DisableTailnetLockResponse)(nil),          // 36: ionscale.v1.DisableTailnetLockResponse
+	(*DNSConfig)(nil),                           // 37: ionscale.v1.DNSConfig
 }
 var file_ionscale_v1_tailnets_proto_depIdxs = []int32{
-	33, // 0: ionscale.v1.Tailnet.dns_config:type_name -> ionscale.v1.DNSConfig
-	33, // 1: ionscale.v1.CreateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
+	37, // 0: ionscale.v1.Tailnet.dns_config:type_name -> ionscale.v1.DNSConfig
+	37, // 1: ionscale.v1.CreateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
 	0,  // 2: ionscale.v1.CreateTailnetResponse.tailnet:type_name -> ionscale.v1.Tailnet
-	33, // 3: ionscale.v1.UpdateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
+	37, // 3: ionscale.v1.UpdateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
 	0,  // 4: ionscale.v1.UpdateTailnetResponse.tailnet:type_name -> ionscale.v1.Tailnet
 	0,  // 5: ionscale.v1.GetTailnetResponse.tailnet:type_name -> ionscale.v1.Tailnet
 	0,  // 6: ionscale.v1.ListTailnetsResponse.tailnet:type_name -> ionscale.v1.Tailnet
@@ -1793,7 +1974,7 @@ func file_ionscale_v1_tailnets_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ionscale_v1_tailnets_proto_rawDesc), len(file_ionscale_v1_tailnets_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   33,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

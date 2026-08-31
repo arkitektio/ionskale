@@ -90,6 +90,12 @@ func (t *TailscaleNode) LoginWithOidc(flags ...UpFlag) (int, error) {
 	return responseCode, nil
 }
 
+// Tailscale executes an arbitrary tailscale CLI command on the node and
+// returns its stdout.
+func (t *TailscaleNode) Tailscale(cmd ...string) (string, string, error) {
+	return t.execTailscaleCmd(cmd...)
+}
+
 func (t *TailscaleNode) IPv4() string {
 	return t.mustExecTailscaleCmd("ip", "-4")
 }

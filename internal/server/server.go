@@ -128,6 +128,7 @@ func Start(ctx context.Context, c *config.Config) error {
 		sshActionHandlers := handlers.NewSSHActionHandlers(machinePublicKey, c, repository)
 		queryFeatureHandlers := handlers.NewQueryFeatureHandlers(machinePublicKey, dnsProvider, repository)
 		updateHealthHandlers := handlers.NewUpdateHealthHandlers(machinePublicKey, repository)
+		tkaHandlers := handlers.NewTKAHandlers(machinePublicKey, repository, sessionManager)
 
 		e := echo.New()
 		e.Binder = handlers.JsonBinder{}
@@ -141,6 +142,16 @@ func Start(ctx context.Context, c *config.Config) error {
 		e.GET("/machine/ssh/action/check/:key", sshActionHandlers.CheckAuth)
 		e.POST("/machine/feature/query", queryFeatureHandlers.QueryFeature)
 		e.POST("/machine/update-health", updateHealthHandlers.UpdateHealth)
+		// tailnet lock (TKA) endpoints; the tailscale client issues these as
+		// GET requests carrying a JSON body
+		e.GET("/machine/tka/init/begin", tkaHandlers.InitBegin)
+		e.GET("/machine/tka/init/finish", tkaHandlers.InitFinish)
+		e.GET("/machine/tka/bootstrap", tkaHandlers.Bootstrap)
+		e.GET("/machine/tka/sync/offer", tkaHandlers.SyncOffer)
+		e.GET("/machine/tka/sync/send", tkaHandlers.SyncSend)
+		e.GET("/machine/tka/disable", tkaHandlers.Disable)
+		e.GET("/machine/tka/sign", tkaHandlers.SubmitSignature)
+		e.GET("/machine/tka/affected-sigs", tkaHandlers.AffectedSigs)
 
 		return e
 	}

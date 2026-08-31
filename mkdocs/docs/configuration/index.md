@@ -239,6 +239,24 @@ tailnets:
 
 Security-relevant actions — logins (and refusals), tailnet lifecycle, IAM/ACL changes, key issuance and revocations — are emitted as structured events on the `audit` logger; with `logging.format: json` they can be filtered and shipped by the `logger` field.
 
+### Tailnet lock
+
+ionscale implements the control-plane side of [Tailnet Lock](https://tailscale.com/kb/1226/tailnet-lock): nodes cryptographically verify that new nodes were signed by a tailnet-held key authority, so even a compromised control server cannot inject rogue nodes.
+
+Enable the capability per tailnet, then drive the rest from any node with the standard tailscale CLI:
+
+```bash
+ionscale tailnets enable-tailnet-lock --tailnet <name>
+
+# on a node in the tailnet:
+tailscale lock init --gen-disablements=3 tlpub:<this-node's-lock-key>
+tailscale lock sign nodekey:<new-node> tlpub:<its-lock-key>   # admit nodes that joined later
+tailscale lock add|remove tlpub:<key>                          # manage trusted keys
+tailscale lock disable disablement-secret:<secret>             # shut the authority down
+```
+
+Notes: enabling the key authority requires a signature for **every** existing node (`tailscale lock init` collects them automatically); nodes joining a locked tailnet via a plain auth key stay locked out until signed with `tailscale lock sign`; `ionscale tailnets disable-tailnet-lock` only revokes the capability and is refused while a key authority is active — disable it with the disablement secret first.
+
 ### DNS Configuration
 
 Controls DNS settings:
