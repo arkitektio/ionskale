@@ -88,12 +88,16 @@ func TestTailnetLock(t *testing.T) {
 	})
 }
 
+// waitForLockStatus polls `tailscale lock status` until its output contains
+// marker. Matching is case-insensitive: the CLI wording changed casing across
+// versions (e.g. "Tailnet lock is ENABLED" vs "Tailnet Lock is ENABLED").
 func waitForLockStatus(node *tsn.TailscaleNode, marker string) error {
 	var lastOut string
 	var lastErr error
+	lowerMarker := strings.ToLower(marker)
 	for i := 0; i < 45; i++ {
 		out, _, err := node.Tailscale("lock", "status")
-		if err == nil && strings.Contains(out, marker) {
+		if err == nil && strings.Contains(strings.ToLower(out), lowerMarker) {
 			return nil
 		}
 		lastOut, lastErr = out, err
