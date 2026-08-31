@@ -19,6 +19,7 @@ message Tailnet {
   bool machine_authorization_enabled = 9;
 
   string organization = 10;
+  bool tailnet_lock_enabled = 11;
 }
 
 message CreateTailnetRequest {
@@ -150,3 +151,15 @@ message DisableMachineAuthorizationRequest {
 }
 
 message DisableMachineAuthorizationResponse {}
+
+message EnableTailnetLockRequest {
+  uint64 tailnet_id = 1;
+}
+
+message EnableTailnetLockResponse {}
+
+message DisableTailnetLockRequest {
+  uint64 tailnet_id = 1;
+}
+
+message DisableTailnetLockResponse {}

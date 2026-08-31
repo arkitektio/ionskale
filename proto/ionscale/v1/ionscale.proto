@@ -39,6 +39,8 @@ service IonscaleService {
   rpc DisableSSH(DisableSSHRequest) returns (DisableSSHResponse) {}
   rpc EnableMachineAuthorization(EnableMachineAuthorizationRequest) returns (EnableMachineAuthorizationResponse) {}
   rpc DisableMachineAuthorization(DisableMachineAuthorizationRequest) returns (DisableMachineAuthorizationResponse) {}
+  rpc EnableTailnetLock(EnableTailnetLockRequest) returns (EnableTailnetLockResponse) {}
+  rpc DisableTailnetLock(DisableTailnetLockRequest) returns (DisableTailnetLockResponse) {}
 
   rpc GetDNSConfig(GetDNSConfigRequest) returns (GetDNSConfigResponse) {}
   rpc SetDNSConfig(SetDNSConfigRequest) returns (SetDNSConfigResponse) {}

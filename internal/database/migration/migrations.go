@@ -23,6 +23,7 @@ func Migrations() []*gormigrate.Migration {
 		m202403130830_json_to_text(),
 		m202502150830_use_hostname(),
 		m202608311000_add_tailnet_organization(),
+		m202608312000_tailnet_lock(),
 	}
 	return migrations
 }

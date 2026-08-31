@@ -24,7 +24,7 @@ var File_ionscale_v1_ionscale_proto protoreflect.FileDescriptor
 
 const file_ionscale_v1_ionscale_proto_rawDesc = "" +
 	"\n" +
-	"\x1aionscale/v1/ionscale.proto\x12\vionscale.v1\x1a\x15ionscale/v1/acl.proto\x1a\x16ionscale/v1/auth.proto\x1a\x1bionscale/v1/auth_keys.proto\x1a\x16ionscale/v1/derp.proto\x1a\x15ionscale/v1/dns.proto\x1a\x15ionscale/v1/iam.proto\x1a\x1aionscale/v1/machines.proto\x1a\x18ionscale/v1/routes.proto\x1a\x1aionscale/v1/tailnets.proto\x1a\x17ionscale/v1/users.proto\x1a\x19ionscale/v1/version.proto2\x99 \n" +
+	"\x1aionscale/v1/ionscale.proto\x12\vionscale.v1\x1a\x15ionscale/v1/acl.proto\x1a\x16ionscale/v1/auth.proto\x1a\x1bionscale/v1/auth_keys.proto\x1a\x16ionscale/v1/derp.proto\x1a\x15ionscale/v1/dns.proto\x1a\x15ionscale/v1/iam.proto\x1a\x1aionscale/v1/machines.proto\x1a\x18ionscale/v1/routes.proto\x1a\x1aionscale/v1/tailnets.proto\x1a\x17ionscale/v1/users.proto\x1a\x19ionscale/v1/version.proto2\xe8!\n" +
 	"\x0fIonscaleService\x12O\n" +
 	"\n" +
 	"GetVersion\x12\x1e.ionscale.v1.GetVersionRequest\x1a\x1f.ionscale.v1.GetVersionResponse\"\x00\x12W\n" +
@@ -49,7 +49,9 @@ const file_ionscale_v1_ionscale_proto_rawDesc = "" +
 	"\n" +
 	"DisableSSH\x12\x1e.ionscale.v1.DisableSSHRequest\x1a\x1f.ionscale.v1.DisableSSHResponse\"\x00\x12\x7f\n" +
 	"\x1aEnableMachineAuthorization\x12..ionscale.v1.EnableMachineAuthorizationRequest\x1a/.ionscale.v1.EnableMachineAuthorizationResponse\"\x00\x12\x82\x01\n" +
-	"\x1bDisableMachineAuthorization\x12/.ionscale.v1.DisableMachineAuthorizationRequest\x1a0.ionscale.v1.DisableMachineAuthorizationResponse\"\x00\x12U\n" +
+	"\x1bDisableMachineAuthorization\x12/.ionscale.v1.DisableMachineAuthorizationRequest\x1a0.ionscale.v1.DisableMachineAuthorizationResponse\"\x00\x12d\n" +
+	"\x11EnableTailnetLock\x12%.ionscale.v1.EnableTailnetLockRequest\x1a&.ionscale.v1.EnableTailnetLockResponse\"\x00\x12g\n" +
+	"\x12DisableTailnetLock\x12&.ionscale.v1.DisableTailnetLockRequest\x1a'.ionscale.v1.DisableTailnetLockResponse\"\x00\x12U\n" +
 	"\fGetDNSConfig\x12 .ionscale.v1.GetDNSConfigRequest\x1a!.ionscale.v1.GetDNSConfigResponse\"\x00\x12U\n" +
 	"\fSetDNSConfig\x12 .ionscale.v1.SetDNSConfigRequest\x1a!.ionscale.v1.SetDNSConfigResponse\"\x00\x12U\n" +
 	"\fGetIAMPolicy\x12 .ionscale.v1.GetIAMPolicyRequest\x1a!.ionscale.v1.GetIAMPolicyResponse\"\x00\x12U\n" +
@@ -99,75 +101,79 @@ var file_ionscale_v1_ionscale_proto_goTypes = []any{
 	(*DisableSSHRequest)(nil),                   // 16: ionscale.v1.DisableSSHRequest
 	(*EnableMachineAuthorizationRequest)(nil),   // 17: ionscale.v1.EnableMachineAuthorizationRequest
 	(*DisableMachineAuthorizationRequest)(nil),  // 18: ionscale.v1.DisableMachineAuthorizationRequest
-	(*GetDNSConfigRequest)(nil),                 // 19: ionscale.v1.GetDNSConfigRequest
-	(*SetDNSConfigRequest)(nil),                 // 20: ionscale.v1.SetDNSConfigRequest
-	(*GetIAMPolicyRequest)(nil),                 // 21: ionscale.v1.GetIAMPolicyRequest
-	(*SetIAMPolicyRequest)(nil),                 // 22: ionscale.v1.SetIAMPolicyRequest
-	(*GetACLPolicyRequest)(nil),                 // 23: ionscale.v1.GetACLPolicyRequest
-	(*SetACLPolicyRequest)(nil),                 // 24: ionscale.v1.SetACLPolicyRequest
-	(*GetAuthKeyRequest)(nil),                   // 25: ionscale.v1.GetAuthKeyRequest
-	(*CreateAuthKeyRequest)(nil),                // 26: ionscale.v1.CreateAuthKeyRequest
-	(*DeleteAuthKeyRequest)(nil),                // 27: ionscale.v1.DeleteAuthKeyRequest
-	(*ListAuthKeysRequest)(nil),                 // 28: ionscale.v1.ListAuthKeysRequest
-	(*ListUsersRequest)(nil),                    // 29: ionscale.v1.ListUsersRequest
-	(*DeleteUserRequest)(nil),                   // 30: ionscale.v1.DeleteUserRequest
-	(*RevokeAccountRequest)(nil),                // 31: ionscale.v1.RevokeAccountRequest
-	(*GetMachineRequest)(nil),                   // 32: ionscale.v1.GetMachineRequest
-	(*ListMachinesRequest)(nil),                 // 33: ionscale.v1.ListMachinesRequest
-	(*SetMachineNameRequest)(nil),               // 34: ionscale.v1.SetMachineNameRequest
-	(*AuthorizeMachineRequest)(nil),             // 35: ionscale.v1.AuthorizeMachineRequest
-	(*ExpireMachineRequest)(nil),                // 36: ionscale.v1.ExpireMachineRequest
-	(*DeleteMachineRequest)(nil),                // 37: ionscale.v1.DeleteMachineRequest
-	(*SetMachineKeyExpiryRequest)(nil),          // 38: ionscale.v1.SetMachineKeyExpiryRequest
-	(*GetMachineRoutesRequest)(nil),             // 39: ionscale.v1.GetMachineRoutesRequest
-	(*EnableMachineRoutesRequest)(nil),          // 40: ionscale.v1.EnableMachineRoutesRequest
-	(*DisableMachineRoutesRequest)(nil),         // 41: ionscale.v1.DisableMachineRoutesRequest
-	(*EnableExitNodeRequest)(nil),               // 42: ionscale.v1.EnableExitNodeRequest
-	(*DisableExitNodeRequest)(nil),              // 43: ionscale.v1.DisableExitNodeRequest
-	(*GetVersionResponse)(nil),                  // 44: ionscale.v1.GetVersionResponse
-	(*AuthenticateResponse)(nil),                // 45: ionscale.v1.AuthenticateResponse
-	(*GetDefaultDERPMapResponse)(nil),           // 46: ionscale.v1.GetDefaultDERPMapResponse
-	(*CreateTailnetResponse)(nil),               // 47: ionscale.v1.CreateTailnetResponse
-	(*UpdateTailnetResponse)(nil),               // 48: ionscale.v1.UpdateTailnetResponse
-	(*GetTailnetResponse)(nil),                  // 49: ionscale.v1.GetTailnetResponse
-	(*ListTailnetsResponse)(nil),                // 50: ionscale.v1.ListTailnetsResponse
-	(*DeleteTailnetResponse)(nil),               // 51: ionscale.v1.DeleteTailnetResponse
-	(*GetDERPMapResponse)(nil),                  // 52: ionscale.v1.GetDERPMapResponse
-	(*SetDERPMapResponse)(nil),                  // 53: ionscale.v1.SetDERPMapResponse
-	(*ResetDERPMapResponse)(nil),                // 54: ionscale.v1.ResetDERPMapResponse
-	(*EnableFileSharingResponse)(nil),           // 55: ionscale.v1.EnableFileSharingResponse
-	(*DisableFileSharingResponse)(nil),          // 56: ionscale.v1.DisableFileSharingResponse
-	(*EnableServiceCollectionResponse)(nil),     // 57: ionscale.v1.EnableServiceCollectionResponse
-	(*DisableServiceCollectionResponse)(nil),    // 58: ionscale.v1.DisableServiceCollectionResponse
-	(*EnableSSHResponse)(nil),                   // 59: ionscale.v1.EnableSSHResponse
-	(*DisableSSHResponse)(nil),                  // 60: ionscale.v1.DisableSSHResponse
-	(*EnableMachineAuthorizationResponse)(nil),  // 61: ionscale.v1.EnableMachineAuthorizationResponse
-	(*DisableMachineAuthorizationResponse)(nil), // 62: ionscale.v1.DisableMachineAuthorizationResponse
-	(*GetDNSConfigResponse)(nil),                // 63: ionscale.v1.GetDNSConfigResponse
-	(*SetDNSConfigResponse)(nil),                // 64: ionscale.v1.SetDNSConfigResponse
-	(*GetIAMPolicyResponse)(nil),                // 65: ionscale.v1.GetIAMPolicyResponse
-	(*SetIAMPolicyResponse)(nil),                // 66: ionscale.v1.SetIAMPolicyResponse
-	(*GetACLPolicyResponse)(nil),                // 67: ionscale.v1.GetACLPolicyResponse
-	(*SetACLPolicyResponse)(nil),                // 68: ionscale.v1.SetACLPolicyResponse
-	(*GetAuthKeyResponse)(nil),                  // 69: ionscale.v1.GetAuthKeyResponse
-	(*CreateAuthKeyResponse)(nil),               // 70: ionscale.v1.CreateAuthKeyResponse
-	(*DeleteAuthKeyResponse)(nil),               // 71: ionscale.v1.DeleteAuthKeyResponse
-	(*ListAuthKeysResponse)(nil),                // 72: ionscale.v1.ListAuthKeysResponse
-	(*ListUsersResponse)(nil),                   // 73: ionscale.v1.ListUsersResponse
-	(*DeleteUserResponse)(nil),                  // 74: ionscale.v1.DeleteUserResponse
-	(*RevokeAccountResponse)(nil),               // 75: ionscale.v1.RevokeAccountResponse
-	(*GetMachineResponse)(nil),                  // 76: ionscale.v1.GetMachineResponse
-	(*ListMachinesResponse)(nil),                // 77: ionscale.v1.ListMachinesResponse
-	(*SetMachineNameResponse)(nil),              // 78: ionscale.v1.SetMachineNameResponse
-	(*AuthorizeMachineResponse)(nil),            // 79: ionscale.v1.AuthorizeMachineResponse
-	(*ExpireMachineResponse)(nil),               // 80: ionscale.v1.ExpireMachineResponse
-	(*DeleteMachineResponse)(nil),               // 81: ionscale.v1.DeleteMachineResponse
-	(*SetMachineKeyExpiryResponse)(nil),         // 82: ionscale.v1.SetMachineKeyExpiryResponse
-	(*GetMachineRoutesResponse)(nil),            // 83: ionscale.v1.GetMachineRoutesResponse
-	(*EnableMachineRoutesResponse)(nil),         // 84: ionscale.v1.EnableMachineRoutesResponse
-	(*DisableMachineRoutesResponse)(nil),        // 85: ionscale.v1.DisableMachineRoutesResponse
-	(*EnableExitNodeResponse)(nil),              // 86: ionscale.v1.EnableExitNodeResponse
-	(*DisableExitNodeResponse)(nil),             // 87: ionscale.v1.DisableExitNodeResponse
+	(*EnableTailnetLockRequest)(nil),            // 19: ionscale.v1.EnableTailnetLockRequest
+	(*DisableTailnetLockRequest)(nil),           // 20: ionscale.v1.DisableTailnetLockRequest
+	(*GetDNSConfigRequest)(nil),                 // 21: ionscale.v1.GetDNSConfigRequest
+	(*SetDNSConfigRequest)(nil),                 // 22: ionscale.v1.SetDNSConfigRequest
+	(*GetIAMPolicyRequest)(nil),                 // 23: ionscale.v1.GetIAMPolicyRequest
+	(*SetIAMPolicyRequest)(nil),                 // 24: ionscale.v1.SetIAMPolicyRequest
+	(*GetACLPolicyRequest)(nil),                 // 25: ionscale.v1.GetACLPolicyRequest
+	(*SetACLPolicyRequest)(nil),                 // 26: ionscale.v1.SetACLPolicyRequest
+	(*GetAuthKeyRequest)(nil),                   // 27: ionscale.v1.GetAuthKeyRequest
+	(*CreateAuthKeyRequest)(nil),                // 28: ionscale.v1.CreateAuthKeyRequest
+	(*DeleteAuthKeyRequest)(nil),                // 29: ionscale.v1.DeleteAuthKeyRequest
+	(*ListAuthKeysRequest)(nil),                 // 30: ionscale.v1.ListAuthKeysRequest
+	(*ListUsersRequest)(nil),                    // 31: ionscale.v1.ListUsersRequest
+	(*DeleteUserRequest)(nil),                   // 32: ionscale.v1.DeleteUserRequest
+	(*RevokeAccountRequest)(nil),                // 33: ionscale.v1.RevokeAccountRequest
+	(*GetMachineRequest)(nil),                   // 34: ionscale.v1.GetMachineRequest
+	(*ListMachinesRequest)(nil),                 // 35: ionscale.v1.ListMachinesRequest
+	(*SetMachineNameRequest)(nil),               // 36: ionscale.v1.SetMachineNameRequest
+	(*AuthorizeMachineRequest)(nil),             // 37: ionscale.v1.AuthorizeMachineRequest
+	(*ExpireMachineRequest)(nil),                // 38: ionscale.v1.ExpireMachineRequest
+	(*DeleteMachineRequest)(nil),                // 39: ionscale.v1.DeleteMachineRequest
+	(*SetMachineKeyExpiryRequest)(nil),          // 40: ionscale.v1.SetMachineKeyExpiryRequest
+	(*GetMachineRoutesRequest)(nil),             // 41: ionscale.v1.GetMachineRoutesRequest
+	(*EnableMachineRoutesRequest)(nil),          // 42: ionscale.v1.EnableMachineRoutesRequest
+	(*DisableMachineRoutesRequest)(nil),         // 43: ionscale.v1.DisableMachineRoutesRequest
+	(*EnableExitNodeRequest)(nil),               // 44: ionscale.v1.EnableExitNodeRequest
+	(*DisableExitNodeRequest)(nil),              // 45: ionscale.v1.DisableExitNodeRequest
+	(*GetVersionResponse)(nil),                  // 46: ionscale.v1.GetVersionResponse
+	(*AuthenticateResponse)(nil),                // 47: ionscale.v1.AuthenticateResponse
+	(*GetDefaultDERPMapResponse)(nil),           // 48: ionscale.v1.GetDefaultDERPMapResponse
+	(*CreateTailnetResponse)(nil),               // 49: ionscale.v1.CreateTailnetResponse
+	(*UpdateTailnetResponse)(nil),               // 50: ionscale.v1.UpdateTailnetResponse
+	(*GetTailnetResponse)(nil),                  // 51: ionscale.v1.GetTailnetResponse
+	(*ListTailnetsResponse)(nil),                // 52: ionscale.v1.ListTailnetsResponse
+	(*DeleteTailnetResponse)(nil),               // 53: ionscale.v1.DeleteTailnetResponse
+	(*GetDERPMapResponse)(nil),                  // 54: ionscale.v1.GetDERPMapResponse
+	(*SetDERPMapResponse)(nil),                  // 55: ionscale.v1.SetDERPMapResponse
+	(*ResetDERPMapResponse)(nil),                // 56: ionscale.v1.ResetDERPMapResponse
+	(*EnableFileSharingResponse)(nil),           // 57: ionscale.v1.EnableFileSharingResponse
+	(*DisableFileSharingResponse)(nil),          // 58: ionscale.v1.DisableFileSharingResponse
+	(*EnableServiceCollectionResponse)(nil),     // 59: ionscale.v1.EnableServiceCollectionResponse
+	(*DisableServiceCollectionResponse)(nil),    // 60: ionscale.v1.DisableServiceCollectionResponse
+	(*EnableSSHResponse)(nil),                   // 61: ionscale.v1.EnableSSHResponse
+	(*DisableSSHResponse)(nil),                  // 62: ionscale.v1.DisableSSHResponse
+	(*EnableMachineAuthorizationResponse)(nil),  // 63: ionscale.v1.EnableMachineAuthorizationResponse
+	(*DisableMachineAuthorizationResponse)(nil), // 64: ionscale.v1.DisableMachineAuthorizationResponse
+	(*EnableTailnetLockResponse)(nil),           // 65: ionscale.v1.EnableTailnetLockResponse
+	(*DisableTailnetLockResponse)(nil),          // 66: ionscale.v1.DisableTailnetLockResponse
+	(*GetDNSConfigResponse)(nil),                // 67: ionscale.v1.GetDNSConfigResponse
+	(*SetDNSConfigResponse)(nil),                // 68: ionscale.v1.SetDNSConfigResponse
+	(*GetIAMPolicyResponse)(nil),                // 69: ionscale.v1.GetIAMPolicyResponse
+	(*SetIAMPolicyResponse)(nil),                // 70: ionscale.v1.SetIAMPolicyResponse
+	(*GetACLPolicyResponse)(nil),                // 71: ionscale.v1.GetACLPolicyResponse
+	(*SetACLPolicyResponse)(nil),                // 72: ionscale.v1.SetACLPolicyResponse
+	(*GetAuthKeyResponse)(nil),                  // 73: ionscale.v1.GetAuthKeyResponse
+	(*CreateAuthKeyResponse)(nil),               // 74: ionscale.v1.CreateAuthKeyResponse
+	(*DeleteAuthKeyResponse)(nil),               // 75: ionscale.v1.DeleteAuthKeyResponse
+	(*ListAuthKeysResponse)(nil),                // 76: ionscale.v1.ListAuthKeysResponse
+	(*ListUsersResponse)(nil),                   // 77: ionscale.v1.ListUsersResponse
+	(*DeleteUserResponse)(nil),                  // 78: ionscale.v1.DeleteUserResponse
+	(*RevokeAccountResponse)(nil),               // 79: ionscale.v1.RevokeAccountResponse
+	(*GetMachineResponse)(nil),                  // 80: ionscale.v1.GetMachineResponse
+	(*ListMachinesResponse)(nil),                // 81: ionscale.v1.ListMachinesResponse
+	(*SetMachineNameResponse)(nil),              // 82: ionscale.v1.SetMachineNameResponse
+	(*AuthorizeMachineResponse)(nil),            // 83: ionscale.v1.AuthorizeMachineResponse
+	(*ExpireMachineResponse)(nil),               // 84: ionscale.v1.ExpireMachineResponse
+	(*DeleteMachineResponse)(nil),               // 85: ionscale.v1.DeleteMachineResponse
+	(*SetMachineKeyExpiryResponse)(nil),         // 86: ionscale.v1.SetMachineKeyExpiryResponse
+	(*GetMachineRoutesResponse)(nil),            // 87: ionscale.v1.GetMachineRoutesResponse
+	(*EnableMachineRoutesResponse)(nil),         // 88: ionscale.v1.EnableMachineRoutesResponse
+	(*DisableMachineRoutesResponse)(nil),        // 89: ionscale.v1.DisableMachineRoutesResponse
+	(*EnableExitNodeResponse)(nil),              // 90: ionscale.v1.EnableExitNodeResponse
+	(*DisableExitNodeResponse)(nil),             // 91: ionscale.v1.DisableExitNodeResponse
 }
 var file_ionscale_v1_ionscale_proto_depIdxs = []int32{
 	0,  // 0: ionscale.v1.IonscaleService.GetVersion:input_type -> ionscale.v1.GetVersionRequest
@@ -189,77 +195,81 @@ var file_ionscale_v1_ionscale_proto_depIdxs = []int32{
 	16, // 16: ionscale.v1.IonscaleService.DisableSSH:input_type -> ionscale.v1.DisableSSHRequest
 	17, // 17: ionscale.v1.IonscaleService.EnableMachineAuthorization:input_type -> ionscale.v1.EnableMachineAuthorizationRequest
 	18, // 18: ionscale.v1.IonscaleService.DisableMachineAuthorization:input_type -> ionscale.v1.DisableMachineAuthorizationRequest
-	19, // 19: ionscale.v1.IonscaleService.GetDNSConfig:input_type -> ionscale.v1.GetDNSConfigRequest
-	20, // 20: ionscale.v1.IonscaleService.SetDNSConfig:input_type -> ionscale.v1.SetDNSConfigRequest
-	21, // 21: ionscale.v1.IonscaleService.GetIAMPolicy:input_type -> ionscale.v1.GetIAMPolicyRequest
-	22, // 22: ionscale.v1.IonscaleService.SetIAMPolicy:input_type -> ionscale.v1.SetIAMPolicyRequest
-	23, // 23: ionscale.v1.IonscaleService.GetACLPolicy:input_type -> ionscale.v1.GetACLPolicyRequest
-	24, // 24: ionscale.v1.IonscaleService.SetACLPolicy:input_type -> ionscale.v1.SetACLPolicyRequest
-	25, // 25: ionscale.v1.IonscaleService.GetAuthKey:input_type -> ionscale.v1.GetAuthKeyRequest
-	26, // 26: ionscale.v1.IonscaleService.CreateAuthKey:input_type -> ionscale.v1.CreateAuthKeyRequest
-	27, // 27: ionscale.v1.IonscaleService.DeleteAuthKey:input_type -> ionscale.v1.DeleteAuthKeyRequest
-	28, // 28: ionscale.v1.IonscaleService.ListAuthKeys:input_type -> ionscale.v1.ListAuthKeysRequest
-	29, // 29: ionscale.v1.IonscaleService.ListUsers:input_type -> ionscale.v1.ListUsersRequest
-	30, // 30: ionscale.v1.IonscaleService.DeleteUser:input_type -> ionscale.v1.DeleteUserRequest
-	31, // 31: ionscale.v1.IonscaleService.RevokeAccount:input_type -> ionscale.v1.RevokeAccountRequest
-	32, // 32: ionscale.v1.IonscaleService.GetMachine:input_type -> ionscale.v1.GetMachineRequest
-	33, // 33: ionscale.v1.IonscaleService.ListMachines:input_type -> ionscale.v1.ListMachinesRequest
-	34, // 34: ionscale.v1.IonscaleService.SetMachineName:input_type -> ionscale.v1.SetMachineNameRequest
-	35, // 35: ionscale.v1.IonscaleService.AuthorizeMachine:input_type -> ionscale.v1.AuthorizeMachineRequest
-	36, // 36: ionscale.v1.IonscaleService.ExpireMachine:input_type -> ionscale.v1.ExpireMachineRequest
-	37, // 37: ionscale.v1.IonscaleService.DeleteMachine:input_type -> ionscale.v1.DeleteMachineRequest
-	38, // 38: ionscale.v1.IonscaleService.SetMachineKeyExpiry:input_type -> ionscale.v1.SetMachineKeyExpiryRequest
-	39, // 39: ionscale.v1.IonscaleService.GetMachineRoutes:input_type -> ionscale.v1.GetMachineRoutesRequest
-	40, // 40: ionscale.v1.IonscaleService.EnableMachineRoutes:input_type -> ionscale.v1.EnableMachineRoutesRequest
-	41, // 41: ionscale.v1.IonscaleService.DisableMachineRoutes:input_type -> ionscale.v1.DisableMachineRoutesRequest
-	42, // 42: ionscale.v1.IonscaleService.EnableExitNode:input_type -> ionscale.v1.EnableExitNodeRequest
-	43, // 43: ionscale.v1.IonscaleService.DisableExitNode:input_type -> ionscale.v1.DisableExitNodeRequest
-	44, // 44: ionscale.v1.IonscaleService.GetVersion:output_type -> ionscale.v1.GetVersionResponse
-	45, // 45: ionscale.v1.IonscaleService.Authenticate:output_type -> ionscale.v1.AuthenticateResponse
-	46, // 46: ionscale.v1.IonscaleService.GetDefaultDERPMap:output_type -> ionscale.v1.GetDefaultDERPMapResponse
-	47, // 47: ionscale.v1.IonscaleService.CreateTailnet:output_type -> ionscale.v1.CreateTailnetResponse
-	48, // 48: ionscale.v1.IonscaleService.UpdateTailnet:output_type -> ionscale.v1.UpdateTailnetResponse
-	49, // 49: ionscale.v1.IonscaleService.GetTailnet:output_type -> ionscale.v1.GetTailnetResponse
-	50, // 50: ionscale.v1.IonscaleService.ListTailnets:output_type -> ionscale.v1.ListTailnetsResponse
-	51, // 51: ionscale.v1.IonscaleService.DeleteTailnet:output_type -> ionscale.v1.DeleteTailnetResponse
-	52, // 52: ionscale.v1.IonscaleService.GetDERPMap:output_type -> ionscale.v1.GetDERPMapResponse
-	53, // 53: ionscale.v1.IonscaleService.SetDERPMap:output_type -> ionscale.v1.SetDERPMapResponse
-	54, // 54: ionscale.v1.IonscaleService.ResetDERPMap:output_type -> ionscale.v1.ResetDERPMapResponse
-	55, // 55: ionscale.v1.IonscaleService.EnableFileSharing:output_type -> ionscale.v1.EnableFileSharingResponse
-	56, // 56: ionscale.v1.IonscaleService.DisableFileSharing:output_type -> ionscale.v1.DisableFileSharingResponse
-	57, // 57: ionscale.v1.IonscaleService.EnableServiceCollection:output_type -> ionscale.v1.EnableServiceCollectionResponse
-	58, // 58: ionscale.v1.IonscaleService.DisableServiceCollection:output_type -> ionscale.v1.DisableServiceCollectionResponse
-	59, // 59: ionscale.v1.IonscaleService.EnableSSH:output_type -> ionscale.v1.EnableSSHResponse
-	60, // 60: ionscale.v1.IonscaleService.DisableSSH:output_type -> ionscale.v1.DisableSSHResponse
-	61, // 61: ionscale.v1.IonscaleService.EnableMachineAuthorization:output_type -> ionscale.v1.EnableMachineAuthorizationResponse
-	62, // 62: ionscale.v1.IonscaleService.DisableMachineAuthorization:output_type -> ionscale.v1.DisableMachineAuthorizationResponse
-	63, // 63: ionscale.v1.IonscaleService.GetDNSConfig:output_type -> ionscale.v1.GetDNSConfigResponse
-	64, // 64: ionscale.v1.IonscaleService.SetDNSConfig:output_type -> ionscale.v1.SetDNSConfigResponse
-	65, // 65: ionscale.v1.IonscaleService.GetIAMPolicy:output_type -> ionscale.v1.GetIAMPolicyResponse
-	66, // 66: ionscale.v1.IonscaleService.SetIAMPolicy:output_type -> ionscale.v1.SetIAMPolicyResponse
-	67, // 67: ionscale.v1.IonscaleService.GetACLPolicy:output_type -> ionscale.v1.GetACLPolicyResponse
-	68, // 68: ionscale.v1.IonscaleService.SetACLPolicy:output_type -> ionscale.v1.SetACLPolicyResponse
-	69, // 69: ionscale.v1.IonscaleService.GetAuthKey:output_type -> ionscale.v1.GetAuthKeyResponse
-	70, // 70: ionscale.v1.IonscaleService.CreateAuthKey:output_type -> ionscale.v1.CreateAuthKeyResponse
-	71, // 71: ionscale.v1.IonscaleService.DeleteAuthKey:output_type -> ionscale.v1.DeleteAuthKeyResponse
-	72, // 72: ionscale.v1.IonscaleService.ListAuthKeys:output_type -> ionscale.v1.ListAuthKeysResponse
-	73, // 73: ionscale.v1.IonscaleService.ListUsers:output_type -> ionscale.v1.ListUsersResponse
-	74, // 74: ionscale.v1.IonscaleService.DeleteUser:output_type -> ionscale.v1.DeleteUserResponse
-	75, // 75: ionscale.v1.IonscaleService.RevokeAccount:output_type -> ionscale.v1.RevokeAccountResponse
-	76, // 76: ionscale.v1.IonscaleService.GetMachine:output_type -> ionscale.v1.GetMachineResponse
-	77, // 77: ionscale.v1.IonscaleService.ListMachines:output_type -> ionscale.v1.ListMachinesResponse
-	78, // 78: ionscale.v1.IonscaleService.SetMachineName:output_type -> ionscale.v1.SetMachineNameResponse
-	79, // 79: ionscale.v1.IonscaleService.AuthorizeMachine:output_type -> ionscale.v1.AuthorizeMachineResponse
-	80, // 80: ionscale.v1.IonscaleService.ExpireMachine:output_type -> ionscale.v1.ExpireMachineResponse
-	81, // 81: ionscale.v1.IonscaleService.DeleteMachine:output_type -> ionscale.v1.DeleteMachineResponse
-	82, // 82: ionscale.v1.IonscaleService.SetMachineKeyExpiry:output_type -> ionscale.v1.SetMachineKeyExpiryResponse
-	83, // 83: ionscale.v1.IonscaleService.GetMachineRoutes:output_type -> ionscale.v1.GetMachineRoutesResponse
-	84, // 84: ionscale.v1.IonscaleService.EnableMachineRoutes:output_type -> ionscale.v1.EnableMachineRoutesResponse
-	85, // 85: ionscale.v1.IonscaleService.DisableMachineRoutes:output_type -> ionscale.v1.DisableMachineRoutesResponse
-	86, // 86: ionscale.v1.IonscaleService.EnableExitNode:output_type -> ionscale.v1.EnableExitNodeResponse
-	87, // 87: ionscale.v1.IonscaleService.DisableExitNode:output_type -> ionscale.v1.DisableExitNodeResponse
-	44, // [44:88] is the sub-list for method output_type
-	0,  // [0:44] is the sub-list for method input_type
+	19, // 19: ionscale.v1.IonscaleService.EnableTailnetLock:input_type -> ionscale.v1.EnableTailnetLockRequest
+	20, // 20: ionscale.v1.IonscaleService.DisableTailnetLock:input_type -> ionscale.v1.DisableTailnetLockRequest
+	21, // 21: ionscale.v1.IonscaleService.GetDNSConfig:input_type -> ionscale.v1.GetDNSConfigRequest
+	22, // 22: ionscale.v1.IonscaleService.SetDNSConfig:input_type -> ionscale.v1.SetDNSConfigRequest
+	23, // 23: ionscale.v1.IonscaleService.GetIAMPolicy:input_type -> ionscale.v1.GetIAMPolicyRequest
+	24, // 24: ionscale.v1.IonscaleService.SetIAMPolicy:input_type -> ionscale.v1.SetIAMPolicyRequest
+	25, // 25: ionscale.v1.IonscaleService.GetACLPolicy:input_type -> ionscale.v1.GetACLPolicyRequest
+	26, // 26: ionscale.v1.IonscaleService.SetACLPolicy:input_type -> ionscale.v1.SetACLPolicyRequest
+	27, // 27: ionscale.v1.IonscaleService.GetAuthKey:input_type -> ionscale.v1.GetAuthKeyRequest
+	28, // 28: ionscale.v1.IonscaleService.CreateAuthKey:input_type -> ionscale.v1.CreateAuthKeyRequest
+	29, // 29: ionscale.v1.IonscaleService.DeleteAuthKey:input_type -> ionscale.v1.DeleteAuthKeyRequest
+	30, // 30: ionscale.v1.IonscaleService.ListAuthKeys:input_type -> ionscale.v1.ListAuthKeysRequest
+	31, // 31: ionscale.v1.IonscaleService.ListUsers:input_type -> ionscale.v1.ListUsersRequest
+	32, // 32: ionscale.v1.IonscaleService.DeleteUser:input_type -> ionscale.v1.DeleteUserRequest
+	33, // 33: ionscale.v1.IonscaleService.RevokeAccount:input_type -> ionscale.v1.RevokeAccountRequest
+	34, // 34: ionscale.v1.IonscaleService.GetMachine:input_type -> ionscale.v1.GetMachineRequest
+	35, // 35: ionscale.v1.IonscaleService.ListMachines:input_type -> ionscale.v1.ListMachinesRequest
+	36, // 36: ionscale.v1.IonscaleService.SetMachineName:input_type -> ionscale.v1.SetMachineNameRequest
+	37, // 37: ionscale.v1.IonscaleService.AuthorizeMachine:input_type -> ionscale.v1.AuthorizeMachineRequest
+	38, // 38: ionscale.v1.IonscaleService.ExpireMachine:input_type -> ionscale.v1.ExpireMachineRequest
+	39, // 39: ionscale.v1.IonscaleService.DeleteMachine:input_type -> ionscale.v1.DeleteMachineRequest
+	40, // 40: ionscale.v1.IonscaleService.SetMachineKeyExpiry:input_type -> ionscale.v1.SetMachineKeyExpiryRequest
+	41, // 41: ionscale.v1.IonscaleService.GetMachineRoutes:input_type -> ionscale.v1.GetMachineRoutesRequest
+	42, // 42: ionscale.v1.IonscaleService.EnableMachineRoutes:input_type -> ionscale.v1.EnableMachineRoutesRequest
+	43, // 43: ionscale.v1.IonscaleService.DisableMachineRoutes:input_type -> ionscale.v1.DisableMachineRoutesRequest
+	44, // 44: ionscale.v1.IonscaleService.EnableExitNode:input_type -> ionscale.v1.EnableExitNodeRequest
+	45, // 45: ionscale.v1.IonscaleService.DisableExitNode:input_type -> ionscale.v1.DisableExitNodeRequest
+	46, // 46: ionscale.v1.IonscaleService.GetVersion:output_type -> ionscale.v1.GetVersionResponse
+	47, // 47: ionscale.v1.IonscaleService.Authenticate:output_type -> ionscale.v1.AuthenticateResponse
+	48, // 48: ionscale.v1.IonscaleService.GetDefaultDERPMap:output_type -> ionscale.v1.GetDefaultDERPMapResponse
+	49, // 49: ionscale.v1.IonscaleService.CreateTailnet:output_type -> ionscale.v1.CreateTailnetResponse
+	50, // 50: ionscale.v1.IonscaleService.UpdateTailnet:output_type -> ionscale.v1.UpdateTailnetResponse
+	51, // 51: ionscale.v1.IonscaleService.GetTailnet:output_type -> ionscale.v1.GetTailnetResponse
+	52, // 52: ionscale.v1.IonscaleService.ListTailnets:output_type -> ionscale.v1.ListTailnetsResponse
+	53, // 53: ionscale.v1.IonscaleService.DeleteTailnet:output_type -> ionscale.v1.DeleteTailnetResponse
+	54, // 54: ionscale.v1.IonscaleService.GetDERPMap:output_type -> ionscale.v1.GetDERPMapResponse
+	55, // 55: ionscale.v1.IonscaleService.SetDERPMap:output_type -> ionscale.v1.SetDERPMapResponse
+	56, // 56: ionscale.v1.IonscaleService.ResetDERPMap:output_type -> ionscale.v1.ResetDERPMapResponse
+	57, // 57: ionscale.v1.IonscaleService.EnableFileSharing:output_type -> ionscale.v1.EnableFileSharingResponse
+	58, // 58: ionscale.v1.IonscaleService.DisableFileSharing:output_type -> ionscale.v1.DisableFileSharingResponse
+	59, // 59: ionscale.v1.IonscaleService.EnableServiceCollection:output_type -> ionscale.v1.EnableServiceCollectionResponse
+	60, // 60: ionscale.v1.IonscaleService.DisableServiceCollection:output_type -> ionscale.v1.DisableServiceCollectionResponse
+	61, // 61: ionscale.v1.IonscaleService.EnableSSH:output_type -> ionscale.v1.EnableSSHResponse
+	62, // 62: ionscale.v1.IonscaleService.DisableSSH:output_type -> ionscale.v1.DisableSSHResponse
+	63, // 63: ionscale.v1.IonscaleService.EnableMachineAuthorization:output_type -> ionscale.v1.EnableMachineAuthorizationResponse
+	64, // 64: ionscale.v1.IonscaleService.DisableMachineAuthorization:output_type -> ionscale.v1.DisableMachineAuthorizationResponse
+	65, // 65: ionscale.v1.IonscaleService.EnableTailnetLock:output_type -> ionscale.v1.EnableTailnetLockResponse
+	66, // 66: ionscale.v1.IonscaleService.DisableTailnetLock:output_type -> ionscale.v1.DisableTailnetLockResponse
+	67, // 67: ionscale.v1.IonscaleService.GetDNSConfig:output_type -> ionscale.v1.GetDNSConfigResponse
+	68, // 68: ionscale.v1.IonscaleService.SetDNSConfig:output_type -> ionscale.v1.SetDNSConfigResponse
+	69, // 69: ionscale.v1.IonscaleService.GetIAMPolicy:output_type -> ionscale.v1.GetIAMPolicyResponse
+	70, // 70: ionscale.v1.IonscaleService.SetIAMPolicy:output_type -> ionscale.v1.SetIAMPolicyResponse
+	71, // 71: ionscale.v1.IonscaleService.GetACLPolicy:output_type -> ionscale.v1.GetACLPolicyResponse
+	72, // 72: ionscale.v1.IonscaleService.SetACLPolicy:output_type -> ionscale.v1.SetACLPolicyResponse
+	73, // 73: ionscale.v1.IonscaleService.GetAuthKey:output_type -> ionscale.v1.GetAuthKeyResponse
+	74, // 74: ionscale.v1.IonscaleService.CreateAuthKey:output_type -> ionscale.v1.CreateAuthKeyResponse
+	75, // 75: ionscale.v1.IonscaleService.DeleteAuthKey:output_type -> ionscale.v1.DeleteAuthKeyResponse
+	76, // 76: ionscale.v1.IonscaleService.ListAuthKeys:output_type -> ionscale.v1.ListAuthKeysResponse
+	77, // 77: ionscale.v1.IonscaleService.ListUsers:output_type -> ionscale.v1.ListUsersResponse
+	78, // 78: ionscale.v1.IonscaleService.DeleteUser:output_type -> ionscale.v1.DeleteUserResponse
+	79, // 79: ionscale.v1.IonscaleService.RevokeAccount:output_type -> ionscale.v1.RevokeAccountResponse
+	80, // 80: ionscale.v1.IonscaleService.GetMachine:output_type -> ionscale.v1.GetMachineResponse
+	81, // 81: ionscale.v1.IonscaleService.ListMachines:output_type -> ionscale.v1.ListMachinesResponse
+	82, // 82: ionscale.v1.IonscaleService.SetMachineName:output_type -> ionscale.v1.SetMachineNameResponse
+	83, // 83: ionscale.v1.IonscaleService.AuthorizeMachine:output_type -> ionscale.v1.AuthorizeMachineResponse
+	84, // 84: ionscale.v1.IonscaleService.ExpireMachine:output_type -> ionscale.v1.ExpireMachineResponse
+	85, // 85: ionscale.v1.IonscaleService.DeleteMachine:output_type -> ionscale.v1.DeleteMachineResponse
+	86, // 86: ionscale.v1.IonscaleService.SetMachineKeyExpiry:output_type -> ionscale.v1.SetMachineKeyExpiryResponse
+	87, // 87: ionscale.v1.IonscaleService.GetMachineRoutes:output_type -> ionscale.v1.GetMachineRoutesResponse
+	88, // 88: ionscale.v1.IonscaleService.EnableMachineRoutes:output_type -> ionscale.v1.EnableMachineRoutesResponse
+	89, // 89: ionscale.v1.IonscaleService.DisableMachineRoutes:output_type -> ionscale.v1.DisableMachineRoutesResponse
+	90, // 90: ionscale.v1.IonscaleService.EnableExitNode:output_type -> ionscale.v1.EnableExitNodeResponse
+	91, // 91: ionscale.v1.IonscaleService.DisableExitNode:output_type -> ionscale.v1.DisableExitNodeResponse
+	46, // [46:92] is the sub-list for method output_type
+	0,  // [0:46] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

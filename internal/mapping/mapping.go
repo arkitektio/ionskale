@@ -2,16 +2,18 @@ package mapping
 
 import (
 	"fmt"
-	"github.com/jsiebens/ionscale/internal/config"
-	"github.com/jsiebens/ionscale/internal/domain"
-	"github.com/jsiebens/ionscale/internal/util"
 	"net/netip"
 	"slices"
 	"strconv"
+	"time"
+
+	"github.com/jsiebens/ionscale/internal/config"
+	"github.com/jsiebens/ionscale/internal/domain"
+	"github.com/jsiebens/ionscale/internal/util"
 	"tailscale.com/tailcfg"
 	"tailscale.com/types/dnstype"
 	"tailscale.com/types/key"
-	"time"
+	"tailscale.com/types/tkatype"
 )
 
 func ToDNSConfig(m *domain.Machine, tailnet *domain.Tailnet, c *domain.DNSConfig) *tailcfg.DNSConfig {
@@ -165,6 +167,10 @@ func ToNode(capVer tailcfg.CapabilityVersion, m *domain.Machine, tailnet *domain
 		User:              tailcfg.UserID(m.UserID),
 	}
 
+	if len(m.KeySignature) > 0 {
+		n.KeySignature = tkatype.MarshaledSignature(m.KeySignature)
+	}
+
 	if !peer {
 		var capabilities []tailcfg.NodeCapability
 		capMap := make(tailcfg.NodeCapMap)
@@ -192,6 +198,11 @@ func ToNode(capVer tailcfg.CapabilityVersion, m *domain.Machine, tailnet *domain
 		if tailnet.DNSConfig.HttpsCertsEnabled {
 			capabilities = append(capabilities, tailcfg.CapabilityHTTPS)
 			capMap[tailcfg.CapabilityHTTPS] = []tailcfg.RawMessage{}
+		}
+
+		if tailnet.TailnetLockEnabled {
+			capabilities = append(capabilities, tailcfg.CapabilityTailnetLock)
+			capMap[tailcfg.CapabilityTailnetLock] = []tailcfg.RawMessage{}
 		}
 
 		// ionscale has no support for Funnel yet, so remove Funnel attribute if set via ACL policy

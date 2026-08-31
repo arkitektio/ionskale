@@ -17,6 +17,7 @@ type Repository interface {
 	AuthenticationRequestRepository
 	RegistrationRequestRepository
 	SSHActionRequestRepository
+	TKARepository
 
 	GetControlKeys(ctx context.Context) (*ControlKeys, error)
 	SetControlKeys(ctx context.Context, keys *ControlKeys) error

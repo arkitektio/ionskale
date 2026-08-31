@@ -98,6 +98,8 @@ func (h *RegistrationHandlers) Register(c echo.Context) error {
 		advertisedTags := domain.SanitizeTags(req.Hostinfo.RequestTags)
 		m.Tags = append(m.RegisteredTags, advertisedTags...)
 
+		applyTailnetLockRegistration(c, h.repository, m.TailnetID, m, req)
+
 		if err := h.repository.SaveMachine(ctx, m); err != nil {
 			return logError(err)
 		}
@@ -111,6 +113,13 @@ func (h *RegistrationHandlers) Register(c echo.Context) error {
 		}
 
 		return c.JSON(http.StatusOK, response)
+	}
+
+	// Tailnet lock: a locked node re-registering with a rotated node key and
+	// no signature is handed its previous signature back so it can produce a
+	// rotation signature and register again with it.
+	if sig := tailnetLockRotationSignature(c, h.repository, machineKey, req); sig != nil {
+		return c.JSON(http.StatusOK, tailcfg.RegisterResponse{NodeKeySignature: sig})
 	}
 
 	return h.authenticateMachine(c, machineKey, req)
@@ -244,6 +253,8 @@ func (h *RegistrationHandlers) authenticateMachineWithAuthKey(c echo.Context, ma
 		m.Tailnet = tailnet
 		m.ExpiresAt = now.Add(config.MachineKeyExpiry()).UTC()
 	}
+
+	applyTailnetLockRegistration(c, h.repository, tailnet.ID, m, req)
 
 	if err := h.repository.SaveMachine(ctx, m); err != nil {
 		return logError(err)

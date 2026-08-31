@@ -617,6 +617,8 @@ func (h *AuthenticationHandlers) endMachineRegistrationFlow(c echo.Context, form
 		m.ExpiresAt = now.Add(config.MachineKeyExpiry()).UTC()
 	}
 
+	applyTailnetLockRegistration(c, h.repository, tailnet.ID, m, &req)
+
 	err = h.repository.Transaction(func(rp domain.Repository) error {
 		registrationRequest.Authenticated = true
 		registrationRequest.Error = ""

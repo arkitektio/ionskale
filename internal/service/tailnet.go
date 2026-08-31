@@ -26,6 +26,7 @@ func domainTailnetToApiTailnet(tailnet *domain.Tailnet) (*api.Tailnet, error) {
 		FileSharingEnabled:          tailnet.FileSharingEnabled,
 		SshEnabled:                  tailnet.SSHEnabled,
 		MachineAuthorizationEnabled: tailnet.MachineAuthorizationEnabled,
+		TailnetLockEnabled:          tailnet.TailnetLockEnabled,
 	}
 
 	return t, nil
@@ -591,4 +592,68 @@ func (s *Service) DisableMachineAuthorization(ctx context.Context, req *connect.
 	}
 
 	return connect.NewResponse(&api.DisableMachineAuthorizationResponse{}), nil
+}
+
+func (s *Service) EnableTailnetLock(ctx context.Context, req *connect.Request[api.EnableTailnetLockRequest]) (*connect.Response[api.EnableTailnetLockResponse], error) {
+	principal := CurrentPrincipal(ctx)
+	if !principal.IsSystemAdmin() && !principal.IsTailnetAdmin(req.Msg.TailnetId) {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("permission denied"))
+	}
+
+	tailnet, err := s.repository.GetTailnet(ctx, req.Msg.TailnetId)
+	if err != nil {
+		return nil, logError(err)
+	}
+	if tailnet == nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("tailnet not found"))
+	}
+
+	if !tailnet.TailnetLockEnabled {
+		tailnet.TailnetLockEnabled = true
+		if err := s.repository.SaveTailnet(ctx, tailnet); err != nil {
+			return nil, logError(err)
+		}
+
+		audit.Log("tailnet_lock.feature_enabled", append(audit.Tailnet(tailnet), audit.Actor(principal))...)
+
+		s.sessionManager.NotifyAll(tailnet.ID)
+	}
+
+	return connect.NewResponse(&api.EnableTailnetLockResponse{}), nil
+}
+
+func (s *Service) DisableTailnetLock(ctx context.Context, req *connect.Request[api.DisableTailnetLockRequest]) (*connect.Response[api.DisableTailnetLockResponse], error) {
+	principal := CurrentPrincipal(ctx)
+	if !principal.IsSystemAdmin() && !principal.IsTailnetAdmin(req.Msg.TailnetId) {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("permission denied"))
+	}
+
+	tailnet, err := s.repository.GetTailnet(ctx, req.Msg.TailnetId)
+	if err != nil {
+		return nil, logError(err)
+	}
+	if tailnet == nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("tailnet not found"))
+	}
+
+	state, err := s.repository.GetTailnetTKAState(ctx, req.Msg.TailnetId)
+	if err != nil {
+		return nil, logError(err)
+	}
+	if state.Enabled {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("the tailnet's key authority is active; run 'tailscale lock disable' with a disablement secret first"))
+	}
+
+	if tailnet.TailnetLockEnabled {
+		tailnet.TailnetLockEnabled = false
+		if err := s.repository.SaveTailnet(ctx, tailnet); err != nil {
+			return nil, logError(err)
+		}
+
+		audit.Log("tailnet_lock.feature_disabled", append(audit.Tailnet(tailnet), audit.Actor(principal))...)
+
+		s.sessionManager.NotifyAll(tailnet.ID)
+	}
+
+	return connect.NewResponse(&api.DisableTailnetLockResponse{}), nil
 }

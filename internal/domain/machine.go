@@ -19,6 +19,8 @@ type MachineRepository interface {
 	GetMachine(ctx context.Context, id uint64) (*Machine, error)
 	GetMachineByKeyAndUser(ctx context.Context, key string, userID uint64) (*Machine, error)
 	GetMachineByKeys(ctx context.Context, machineKey string, nodeKey string) (*Machine, error)
+	GetMachineByNodeKey(ctx context.Context, tailnetID uint64, nodeKey string) (*Machine, error)
+	GetMachineByMachineKey(ctx context.Context, machineKey string) (*Machine, error)
 	CountMachinesWithIPv4(ctx context.Context, ip string) (int64, error)
 	GetNextMachineNameIndex(ctx context.Context, tailnetID uint64, name string) (uint64, error)
 	ListMachineByTailnet(ctx context.Context, tailnetID uint64) (Machines, error)
@@ -37,6 +39,12 @@ type Machine struct {
 	MachineKey        string
 	NodeKey           string
 	DiscoKey          string
+	// NLKey is the machine's network-lock (tailnet lock) public key, in
+	// key.NLPublic.MarshalText form; empty when the client never sent one.
+	NLKey string
+	// KeySignature is the serialized tka.NodeKeySignature authorizing this
+	// machine's node key under tailnet lock.
+	KeySignature []byte
 	Ephemeral         bool
 	RegisteredTags    Tags
 	Tags              Tags
@@ -425,6 +433,36 @@ func (r *repository) GetMachineByKeyAndUser(ctx context.Context, machineKey stri
 func (r *repository) GetMachineByKeys(ctx context.Context, machineKey string, nodeKey string) (*Machine, error) {
 	var m Machine
 	tx := r.withContext(ctx).Preload("Tailnet").Preload("User").Take(&m, "machine_key = ? AND node_key = ?", machineKey, nodeKey)
+
+	if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return &m, nil
+}
+
+func (r *repository) GetMachineByMachineKey(ctx context.Context, machineKey string) (*Machine, error) {
+	var m Machine
+	tx := r.withContext(ctx).Preload("Tailnet").Preload("User").Take(&m, "machine_key = ?", machineKey)
+
+	if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return &m, nil
+}
+
+func (r *repository) GetMachineByNodeKey(ctx context.Context, tailnetID uint64, nodeKey string) (*Machine, error) {
+	var m Machine
+	tx := r.withContext(ctx).Preload("Tailnet").Preload("User").Take(&m, "tailnet_id = ? AND node_key = ?", tailnetID, nodeKey)
 
 	if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
