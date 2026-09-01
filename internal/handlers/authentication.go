@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -200,10 +201,16 @@ func (h *AuthenticationHandlers) Callback(c echo.Context) error {
 
 	user, err := h.exchangeUser(code, state.CodeVerifier, state.Nonce)
 	if err != nil {
+		// This one is a policy decision, not a broken exchange: the identity
+		// authenticated fine but carries no organization. It has a page that
+		// explains that, and reaching it beats a bare 500.
+		if errors.Is(err, auth.ErrOrganizationRequired) {
+			return c.Redirect(http.StatusFound, "/a/error?e=ua-org-required")
+		}
 		return logError(err)
 	}
 
-	account, _, err := h.repository.GetOrCreateAccount(ctx, user.ID, user.LoginName())
+	account, _, err := h.repository.GetOrCreateAccount(ctx, user.ID, user.Org, user.LoginName())
 	if err != nil {
 		return logError(err)
 	}

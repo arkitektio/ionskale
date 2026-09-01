@@ -11,22 +11,34 @@ import (
 type AccountRepository interface {
 	GetAccount(ctx context.Context, accountID uint64) (*Account, error)
 	GetAccountByExternalID(ctx context.Context, externalID string) (*Account, error)
-	GetOrCreateAccount(ctx context.Context, externalID, loginName string) (*Account, bool, error)
+	ListAccountsByExternalID(ctx context.Context, externalID string) ([]Account, error)
+	GetOrCreateAccount(ctx context.Context, externalID, organization, loginName string) (*Account, bool, error)
 	SetAccountLastAuthenticated(ctx context.Context, accountID uint64) error
 }
 
+// An Account is one identity from the identity provider, scoped to one
+// organization. The identity provider's subject alone is NOT the key: the same
+// human can be a member of several organizations, and each membership carries
+// its own login name (and potentially its own email). Keying on the subject
+// alone gave them a single shared LoginName that flipped to whichever
+// organization they signed in to last, renaming their user on every other
+// tailnet along with it.
+//
+// With organization scoping off, Organization is "" for every identity and the
+// composite key collapses to the subject, which is the old behaviour.
 type Account struct {
-	ID         uint64 `gorm:"primary_key"`
-	ExternalID string
-	LoginName  string
+	ID           uint64 `gorm:"primary_key"`
+	ExternalID   string
+	Organization string
+	LoginName    string
 }
 
-func (r *repository) GetOrCreateAccount(ctx context.Context, externalID, loginName string) (*Account, bool, error) {
+func (r *repository) GetOrCreateAccount(ctx context.Context, externalID, organization, loginName string) (*Account, bool, error) {
 	account := &Account{}
 	id := util.NextID()
 
 	tx := r.withContext(ctx).
-		Where(Account{ExternalID: externalID}).
+		Where(Account{ExternalID: externalID, Organization: organization}).
 		Attrs(Account{ID: id, LoginName: loginName}).
 		FirstOrCreate(account)
 
@@ -92,4 +104,15 @@ func (r *repository) SetAccountLastAuthenticated(ctx context.Context, accountID 
 	}
 
 	return nil
+}
+
+// ListAccountsByExternalID returns every organization-scoped account belonging
+// to one identity provider subject.
+func (r *repository) ListAccountsByExternalID(ctx context.Context, externalID string) ([]Account, error) {
+	var accounts []Account
+	tx := r.withContext(ctx).Where("external_id = ?", externalID).Find(&accounts)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return accounts, nil
 }

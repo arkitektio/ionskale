@@ -113,17 +113,24 @@ func (s *Service) RevokeAccount(ctx context.Context, req *connect.Request[api.Re
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("external_id is required"))
 	}
 
-	account, err := s.repository.GetAccountByExternalID(ctx, req.Msg.ExternalId)
+	// One subject can now hold an account per organization. Revoking is a
+	// security action, so it covers all of them: leaving the same person live
+	// on another organization's network would be a surprising default.
+	accounts, err := s.repository.ListAccountsByExternalID(ctx, req.Msg.ExternalId)
 	if err != nil {
 		return nil, logError(err)
 	}
-	if account == nil {
+	if len(accounts) == 0 {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("account not found"))
 	}
 
-	users, err := s.repository.ListUsersByAccount(ctx, account.ID)
-	if err != nil {
-		return nil, logError(err)
+	var users domain.Users
+	for _, account := range accounts {
+		accountUsers, err := s.repository.ListUsersByAccount(ctx, account.ID)
+		if err != nil {
+			return nil, logError(err)
+		}
+		users = append(users, accountUsers...)
 	}
 
 	var revoke []domain.User

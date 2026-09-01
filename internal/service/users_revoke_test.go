@@ -70,12 +70,17 @@ func TestRevokeAccountScopedToOrganization(t *testing.T) {
 	orgTailnet := newTestTailnet(t, repo, "org-net", "42")
 	otherOrgTailnet := newTestTailnet(t, repo, "other-net", "7")
 
-	account, _, err := repo.GetOrCreateAccount(ctx, "sub1", "john@example.com")
+	// The same subject in two organizations is two accounts, since accounts are
+	// keyed on (external id, organization).
+	orgAccount, _, err := repo.GetOrCreateAccount(ctx, "sub1", "42", "john@example.com")
 	require.NoError(t, err)
+	otherAccount, _, err := repo.GetOrCreateAccount(ctx, "sub1", "7", "john@example.com")
+	require.NoError(t, err)
+	require.NotEqual(t, orgAccount.ID, otherAccount.ID)
 
-	orgUser, _, err := repo.GetOrCreateUserWithAccount(ctx, orgTailnet, account)
+	orgUser, _, err := repo.GetOrCreateUserWithAccount(ctx, orgTailnet, orgAccount)
 	require.NoError(t, err)
-	otherUser, _, err := repo.GetOrCreateUserWithAccount(ctx, otherOrgTailnet, account)
+	otherUser, _, err := repo.GetOrCreateUserWithAccount(ctx, otherOrgTailnet, otherAccount)
 	require.NoError(t, err)
 
 	newTestMachine(t, repo, orgTailnet, orgUser, "100.64.0.1")
@@ -117,12 +122,16 @@ func TestRevokeAccountAllTailnets(t *testing.T) {
 	a := newTestTailnet(t, repo, "net-a", "42")
 	b := newTestTailnet(t, repo, "net-b", "")
 
-	account, _, err := repo.GetOrCreateAccount(ctx, "sub1", "john@example.com")
+	// Two accounts for one subject: revoking without an organization must reach
+	// across all of them, not just the one that happens to be found first.
+	accountA, _, err := repo.GetOrCreateAccount(ctx, "sub1", "42", "john@example.com")
+	require.NoError(t, err)
+	accountB, _, err := repo.GetOrCreateAccount(ctx, "sub1", "", "john@example.com")
 	require.NoError(t, err)
 
-	userA, _, err := repo.GetOrCreateUserWithAccount(ctx, a, account)
+	userA, _, err := repo.GetOrCreateUserWithAccount(ctx, a, accountA)
 	require.NoError(t, err)
-	userB, _, err := repo.GetOrCreateUserWithAccount(ctx, b, account)
+	userB, _, err := repo.GetOrCreateUserWithAccount(ctx, b, accountB)
 	require.NoError(t, err)
 
 	resp, err := svc.RevokeAccount(systemAdminCtx(), connect.NewRequest(&api.RevokeAccountRequest{ExternalId: "sub1"}))

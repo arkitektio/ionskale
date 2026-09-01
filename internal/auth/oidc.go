@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/jsiebens/ionscale/internal/config"
 	"strconv"
@@ -14,6 +15,11 @@ import (
 // defaultUsernameClaim is the standard OIDC claim carrying a human-readable
 // handle; providers that omit it fall back to the email.
 const defaultUsernameClaim = "preferred_username"
+
+// ErrOrganizationRequired is returned when organizations.required is set and an
+// identity arrives without an organization claim. Callers match on it to show
+// the identity a page explaining why it was refused.
+var ErrOrganizationRequired = errors.New("identity is missing the required organization claim")
 
 type OIDCProvider struct {
 	clientID      string
@@ -144,7 +150,7 @@ func (p *OIDCProvider) Exchange(redirectURI, code, codeVerifier, nonce string) (
 			user.Roles = claimAsStringSlice(lookupClaim(p.organizations.RolesClaim, tokenClaims, userInfoClaims))
 		}
 		if p.organizations.Required && user.Org == "" {
-			return nil, fmt.Errorf("identity is missing the required organization claim %q", p.organizations.Claim)
+			return nil, fmt.Errorf("%w %q", ErrOrganizationRequired, p.organizations.Claim)
 		}
 		user.Attr["org"] = user.Org
 		user.Attr["roles"] = user.Roles

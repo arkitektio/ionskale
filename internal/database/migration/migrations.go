@@ -24,6 +24,7 @@ func Migrations() []*gormigrate.Migration {
 		m202502150830_use_hostname(),
 		m202608311000_add_tailnet_organization(),
 		m202608312000_tailnet_lock(),
+		m202609011200_account_organization(),
 	}
 	return migrations
 }
