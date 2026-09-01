@@ -1,0 +1,17 @@
+# Dev image: keeps the Go toolchain so ./ionskale can be bind-mounted at /src and
+# rebuilt in place. The prod Dockerfile is goreleaser-style (COPY of a prebuilt
+# binary) and cannot build from source.
+#
+# uid/gid are pinned to 100/101 to match the prod image's implicitly-allocated
+# `ionscale` account, so ./data/ionscale stays readable by both images.
+FROM golang:1.24-alpine
+RUN apk add --no-cache git ca-certificates
+RUN addgroup -S -g 101 ionscale && adduser -S -u 100 -G ionscale ionscale \
+ && mkdir -p /data/ionscale /gocache /etc/ionscale \
+ && chown -R ionscale:ionscale /data/ionscale /gocache
+ENV GOCACHE=/gocache/build GOMODCACHE=/gocache/mod CGO_ENABLED=0
+WORKDIR /src
+USER ionscale
+# run-debug.sh comes from the bind mount, not the image; invoked via `sh` because
+# the host clone's exec bit is not relied upon.
+ENTRYPOINT ["sh", "/src/run-debug.sh"]

@@ -248,6 +248,11 @@ type AuthProvider struct {
 	ClientID     string   `json:"client_id"`
 	ClientSecret string   `json:"client_secret"`
 	Scopes       []string `json:"additional_scopes" `
+	// UsernameClaim names the claim used as an identity's login name in the
+	// Tailscale client. Defaults to "preferred_username"; the email is used
+	// when the claim is absent. Identity, IAM policies and audit matching are
+	// unaffected -- this only changes the label users see.
+	UsernameClaim string `json:"username_claim,omitempty"`
 }
 
 // Tailnets holds deployment-level defaults applied to tailnets and machines.

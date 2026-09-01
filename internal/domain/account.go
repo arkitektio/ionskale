@@ -34,7 +34,20 @@ func (r *repository) GetOrCreateAccount(ctx context.Context, externalID, loginNa
 		return nil, false, tx.Error
 	}
 
-	return account, account.ID == id, nil
+	created := account.ID == id
+
+	// The login name is a label the identity provider owns, so it can change
+	// between logins -- a renamed user, or a claim that only became available
+	// later. Attrs above applies on insert only, so an existing account would
+	// otherwise keep its first-ever label forever.
+	if !created && loginName != "" && account.LoginName != loginName {
+		if err := r.withContext(ctx).Model(account).Update("login_name", loginName).Error; err != nil {
+			return nil, false, err
+		}
+		account.LoginName = loginName
+	}
+
+	return account, created, nil
 }
 
 func (r *repository) GetAccount(ctx context.Context, id uint64) (*Account, error) {

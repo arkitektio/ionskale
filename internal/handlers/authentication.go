@@ -68,6 +68,11 @@ type oauthState struct {
 	Key       string
 	Flow      AuthFlow
 	ExpiresAt time.Time
+	// Nonce and CodeVerifier are generated per authorization request and
+	// replayed at the callback to bind the id_token and the code exchange to
+	// it. Safe to keep here: the state blob is sealed with a server-held key.
+	Nonce        string
+	CodeVerifier string
 }
 
 type AuthFlow string
@@ -132,12 +137,12 @@ func (h *AuthenticationHandlers) StartAuth(c echo.Context) error {
 
 startOidc:
 
-	state, err := h.createState(input.Flow, input.Key)
+	state, nonce, codeVerifier, err := h.createState(input.Flow, input.Key)
 	if err != nil {
 		return logError(err)
 	}
 
-	redirectUrl := h.authProvider.GetLoginURL(h.config.CreateUrl("/a/callback"), state)
+	redirectUrl := h.authProvider.GetLoginURL(h.config.CreateUrl("/a/callback"), state, nonce, codeVerifier)
 
 	return c.Redirect(http.StatusFound, redirectUrl)
 }
@@ -160,12 +165,12 @@ func (h *AuthenticationHandlers) ProcessAuth(c echo.Context) error {
 	}
 
 	if input.Oidc {
-		state, err := h.createState(input.Flow, input.Key)
+		state, nonce, codeVerifier, err := h.createState(input.Flow, input.Key)
 		if err != nil {
 			return logError(err)
 		}
 
-		redirectUrl := h.authProvider.GetLoginURL(h.config.CreateUrl("/a/callback"), state)
+		redirectUrl := h.authProvider.GetLoginURL(h.config.CreateUrl("/a/callback"), state, nonce, codeVerifier)
 
 		return c.Redirect(http.StatusFound, redirectUrl)
 	}
@@ -176,18 +181,29 @@ func (h *AuthenticationHandlers) ProcessAuth(c echo.Context) error {
 func (h *AuthenticationHandlers) Callback(c echo.Context) error {
 	ctx := c.Request().Context()
 
+	// The provider reports a failed authorization by redirecting back here with
+	// an error parameter and no code. Without this check the empty code was fed
+	// to the token endpoint, and its "invalid code" reply surfaced as an opaque
+	// 500 that hid the provider's actual complaint.
+	if e := c.QueryParam("error"); e != "" {
+		zap.L().Error("authentication provider returned an error",
+			zap.String("error", e),
+			zap.String("error_description", c.QueryParam("error_description")))
+		return c.Redirect(http.StatusFound, "/a/error?e=idp")
+	}
+
 	code := c.QueryParam("code")
 	state, err := h.readState(c.QueryParam("state"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid state parameter")
 	}
 
-	user, err := h.exchangeUser(code)
+	user, err := h.exchangeUser(code, state.CodeVerifier, state.Nonce)
 	if err != nil {
 		return logError(err)
 	}
 
-	account, _, err := h.repository.GetOrCreateAccount(ctx, user.ID, user.Name)
+	account, _, err := h.repository.GetOrCreateAccount(ctx, user.ID, user.LoginName())
 	if err != nil {
 		return logError(err)
 	}
@@ -252,7 +268,7 @@ func (h *AuthenticationHandlers) Callback(c echo.Context) error {
 				registrationRequest.Error = "unauthorized"
 				_ = h.repository.SaveRegistrationRequest(ctx, registrationRequest)
 			}
-			return c.Redirect(http.StatusFound, "/a/error?e=ua")
+			return c.Redirect(http.StatusFound, "/a/error?e="+h.denialCode(ctx, user))
 		}
 
 		if len(tailnets) == 1 {
@@ -287,7 +303,7 @@ func (h *AuthenticationHandlers) Callback(c echo.Context) error {
 				req.Error = "unauthorized"
 				_ = h.repository.SaveAuthenticationRequest(ctx, req)
 			}
-			return c.Redirect(http.StatusFound, "/a/error?e=ua")
+			return c.Redirect(http.StatusFound, "/a/error?e="+h.denialCode(ctx, user))
 		}
 
 		// with exactly one tailnet and no system-admin continuation to offer,
@@ -401,6 +417,16 @@ func (h *AuthenticationHandlers) Error(c echo.Context) error {
 		return c.Render(http.StatusForbidden, "", tpl.InvalidAuthKey())
 	case "ua":
 		return c.Render(http.StatusForbidden, "", tpl.Unauthorized())
+	case "ua-none":
+		return c.Render(http.StatusForbidden, "", tpl.NoNetworks())
+	case "ua-org":
+		return c.Render(http.StatusForbidden, "", tpl.NoNetworkForOrganization())
+	case "ua-org-required":
+		return c.Render(http.StatusForbidden, "", tpl.OrganizationRequired())
+	case "ua-policy":
+		return c.Render(http.StatusForbidden, "", tpl.NotOnAccessPolicy())
+	case "idp":
+		return c.Render(http.StatusForbidden, "", tpl.ProviderRejected())
 	case "nto":
 		return c.Render(http.StatusForbidden, "", tpl.NotTagOwner())
 	case "nmo":
@@ -680,6 +706,45 @@ func (h *AuthenticationHandlers) listAvailableTailnets(ctx context.Context, u *a
 	return result, nil
 }
 
+// denialCode works out why listAvailableTailnets came back empty, so the error
+// page can say something more useful than "not authorized". It returns one of a
+// fixed set of codes: the reason travels through a redirect, and a closed enum
+// keeps arbitrary text off the page.
+//
+// The branches mirror tailnetAccessible below, in the same order.
+func (h *AuthenticationHandlers) denialCode(ctx context.Context, u *auth.User) string {
+	orgs := h.config.Auth.Organizations
+
+	tailnets, err := h.repository.ListTailnets(ctx)
+	if err != nil {
+		return "ua"
+	}
+
+	// Nothing to be a member of yet.
+	if len(tailnets) == 0 {
+		return "ua-none"
+	}
+
+	if orgs.Enabled() {
+		// An identity without an organization can only ever reach tailnets that
+		// are themselves unbound, and those are hidden once scoping is on.
+		if u.Org == "" {
+			return "ua-org-required"
+		}
+		// Some tailnet is in the identity's organization, so the boundary held
+		// and an IAM policy did the rejecting.
+		for _, t := range tailnets {
+			if t.Organization == u.Org {
+				return "ua-policy"
+			}
+		}
+		return "ua-org"
+	}
+
+	// No scoping: every tailnet was evaluated, so every policy said no.
+	return "ua-policy"
+}
+
 // tailnetAccessible decides whether an authenticated identity may enter a
 // tailnet. A tailnet bound to an organization is a hard boundary: identities
 // of other organizations never see it, regardless of its IAM policy. Within
@@ -767,10 +832,10 @@ func (h *AuthenticationHandlers) syncOrgRoles(ctx context.Context, u *auth.User)
 	return nil
 }
 
-func (h *AuthenticationHandlers) exchangeUser(code string) (*auth.User, error) {
+func (h *AuthenticationHandlers) exchangeUser(code, codeVerifier, nonce string) (*auth.User, error) {
 	redirectUrl := h.config.CreateUrl("/a/callback")
 
-	user, err := h.authProvider.Exchange(redirectUrl, code)
+	user, err := h.authProvider.Exchange(redirectUrl, code, codeVerifier, nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -780,13 +845,25 @@ func (h *AuthenticationHandlers) exchangeUser(code string) (*auth.User, error) {
 
 // The OAuth state is sealed with a server-held key so it cannot be forged or
 // tampered with while it travels through the identity provider redirect.
-func (h *AuthenticationHandlers) createState(flow AuthFlow, key string) (string, error) {
-	stateMap := oauthState{Key: key, Flow: flow, ExpiresAt: time.Now().Add(authSessionLifetime)}
+// Returns the sealed state, plus the nonce and PKCE code verifier it carries.
+func (h *AuthenticationHandlers) createState(flow AuthFlow, key string) (string, string, string, error) {
+	// 64 chars from the unreserved alphabet: a valid PKCE code_verifier
+	// (RFC 7636 allows 43-128) and ample entropy for a nonce.
+	nonce := util.RandStringBytes(64)
+	codeVerifier := util.RandStringBytes(64)
+
+	stateMap := oauthState{
+		Key:          key,
+		Flow:         flow,
+		ExpiresAt:    time.Now().Add(authSessionLifetime),
+		Nonce:        nonce,
+		CodeVerifier: codeVerifier,
+	}
 	marshal, err := json.Marshal(&stateMap)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
-	return base58.FastBase58Encoding(h.sessionKey.Seal(marshal)), nil
+	return base58.FastBase58Encoding(h.sessionKey.Seal(marshal)), nonce, codeVerifier, nil
 }
 
 func (h *AuthenticationHandlers) readState(s string) (*oauthState, error) {

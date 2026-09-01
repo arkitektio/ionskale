@@ -150,7 +150,10 @@ func Error() templ.Component {
 	})
 }
 
-func Unauthorized() templ.Component {
+// denial is the shared shape of every "you signed in, but ..." screen: the
+// sign-in itself worked, so the page leads with that and then explains the
+// specific thing that stopped it, followed by the one action that resolves it.
+func denial(eyebrow string, title string, detail string, nextStep string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -171,7 +174,263 @@ func Unauthorized() templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<section class=\"stack stack-center hero\"><span class=\"eyebrow eyebrow-danger\">Access denied</span><h1 class=\"title\">Authentication succeeded, but access was denied</h1><p class=\"subtitle\">Your identity is valid, but you are <span class=\"highlight highlight-danger\">not authorized</span> to use any network.</p></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<section class=\"stack stack-center hero\"><span class=\"eyebrow eyebrow-danger\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(eyebrow)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 50, Col: 54}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span><h1 class=\"title\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 51, Col: 33}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</h1><p class=\"subtitle\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 52, Col: 36}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p><div class=\"panel nextStep\"><span class=\"panelLabel\">What to do next</span><p class=\"panelText\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(nextStep)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 55, Col: 43}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p></div></section>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func Unauthorized() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var12 == nil {
+			templ_7745c5c3_Var12 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = denial(
+			"Access denied",
+			"You are not authorized to use any network",
+			"Your sign-in succeeded and your identity is valid, but it does not grant access to any network on this control plane.",
+			"Ask an administrator of this control plane to grant your account access to a network.",
+		).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func NoNetworks() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var13 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var13 == nil {
+			templ_7745c5c3_Var13 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = denial(
+			"Access denied",
+			"This control plane has no networks yet",
+			"Your sign-in succeeded. Access was denied because no network exists on this server at all, so there is nothing yet for your account to join.",
+			"An administrator needs to create a network on this control plane. Until one exists, every sign-in will end on this page.",
+		).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func NoNetworkForOrganization() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var14 == nil {
+			templ_7745c5c3_Var14 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = denial(
+			"Access denied",
+			"No network belongs to your organization",
+			"Your sign-in succeeded and your identity carries an organization, but no network on this server is bound to it. Networks are scoped to a single organization, so networks belonging to other organizations are never offered.",
+			"Ask an administrator to create a network for your organization, or to confirm that your account is in the organization you expect.",
+		).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func OrganizationRequired() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var15 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var15 == nil {
+			templ_7745c5c3_Var15 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = denial(
+			"Access denied",
+			"Your identity carries no organization",
+			"Your sign-in succeeded, but this server scopes every network to an organization and your identity did not include one. Without an organization there is no network you are eligible to join.",
+			"Ask an administrator to assign your account to an organization in the identity provider, so the organization claim is present the next time you sign in.",
+		).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func NotOnAccessPolicy() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = denial(
+			"Access denied",
+			"No network's access policy includes your account",
+			"Your sign-in succeeded and networks do exist, but each one has an access policy, and none of them matches your account.",
+			"Ask an administrator to add your account to the access policy of the network you need.",
+		).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func ProviderRejected() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var17 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var17 == nil {
+			templ_7745c5c3_Var17 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = denial(
+			"Sign-in failed",
+			"The identity provider refused the sign-in",
+			"The request never got as far as this server's access checks: your identity provider rejected it and sent back an error instead of a sign-in. A cancelled login, an expired attempt, or a misconfigured client all look like this.",
+			"Try signing in again. If it keeps failing, an administrator can find the provider's exact message in this server's log.",
+		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -195,12 +454,17 @@ func InvalidAuthKey() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var8 == nil {
-			templ_7745c5c3_Var8 = templ.NopComponent
+		templ_7745c5c3_Var18 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var18 == nil {
+			templ_7745c5c3_Var18 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<section class=\"stack stack-center hero\"><span class=\"eyebrow eyebrow-danger\">Authorization failed</span><h1 class=\"title\">Invalid auth key</h1><p class=\"subtitle\">The provided auth key is <span class=\"highlight highlight-danger\">invalid</span>. Check the key value and try again.</p></section>")
+		templ_7745c5c3_Err = denial(
+			"Invalid auth key",
+			"That auth key is not valid",
+			"The key you entered was not recognised. Auth keys are single-use or time-limited, so a key that worked before may since have been used or expired.",
+			"Check the key for typos, or ask an administrator to issue a fresh auth key.",
+		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -224,12 +488,17 @@ func NotTagOwner() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var9 == nil {
-			templ_7745c5c3_Var9 = templ.NopComponent
+		templ_7745c5c3_Var19 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var19 == nil {
+			templ_7745c5c3_Var19 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<section class=\"stack stack-center hero\"><span class=\"eyebrow eyebrow-danger\">Access denied</span><h1 class=\"title\">Tag ownership check failed</h1><p class=\"subtitle\">Authentication succeeded, but you are <span class=\"highlight highlight-danger\">not a valid tag owner</span> for the requested tags.</p></section>")
+		templ_7745c5c3_Err = denial(
+			"Access denied",
+			"You are not an owner of the requested tags",
+			"Your sign-in succeeded, but this device asked for tags that your account is not listed as an owner of, so it cannot claim them.",
+			"Ask an administrator to add your account to the tag owners in the network's access policy, or retry with tags you already own.",
+		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -253,12 +522,17 @@ func NotMachineOwner() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var10 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var10 == nil {
-			templ_7745c5c3_Var10 = templ.NopComponent
+		templ_7745c5c3_Var20 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var20 == nil {
+			templ_7745c5c3_Var20 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<section class=\"stack stack-center hero\"><span class=\"eyebrow eyebrow-danger\">Access denied</span><h1 class=\"title\">Machine ownership check failed</h1><p class=\"subtitle\">Authentication succeeded, but you are <span class=\"highlight highlight-danger\">not a valid owner</span> of this machine.</p></section>")
+		templ_7745c5c3_Err = denial(
+			"Access denied",
+			"You are not the owner of this machine",
+			"Your sign-in succeeded, but this action can only be approved by the account that owns the machine, and that is not your account.",
+			"Sign in as the account that registered this machine, or ask its owner to approve the request.",
+		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -282,12 +556,12 @@ func layout(contents templ.Component) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var11 == nil {
-			templ_7745c5c3_Var11 = templ.NopComponent
+		templ_7745c5c3_Var21 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var21 == nil {
+			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<!doctype html><html lang=\"en\"><head>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<!doctype html><html lang=\"en\"><head>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -295,7 +569,7 @@ func layout(contents templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</head><body><main class=\"page\"><div class=\"ambient ambientOne\"></div><div class=\"ambient ambientTwo\"></div><div class=\"wrapper\"><div class=\"brandBar\"><div class=\"brandMark\">I</div><div><p class=\"brandName\">ionscale</p><p class=\"brandHint\">Authentication gateway</p></div></div><div class=\"shell\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</head><body><main class=\"page\"><div class=\"ambient ambientOne\"></div><div class=\"ambient ambientTwo\"></div><div class=\"wrapper\"><div class=\"brandBar\"><div class=\"brandMark\">I</div><div><p class=\"brandName\">ionscale</p><p class=\"brandHint\">Authentication gateway</p></div></div><div class=\"shell\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -303,7 +577,7 @@ func layout(contents templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div></div></main></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div></main></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -327,12 +601,12 @@ func heading() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var12 == nil {
-			templ_7745c5c3_Var12 = templ.NopComponent
+		templ_7745c5c3_Var22 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var22 == nil {
+			templ_7745c5c3_Var22 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>\n        :root {\n            color-scheme: dark;\n            --bg: #09090b;\n            --panel: rgba(15, 23, 42, 0.88);\n            --panel-strong: rgba(24, 24, 27, 0.96);\n            --panel-soft: rgba(39, 39, 42, 0.72);\n            --border: rgba(255, 255, 255, 0.1);\n            --border-strong: rgba(255, 255, 255, 0.16);\n            --text: #fafafa;\n            --muted: #a1a1aa;\n            --muted-strong: #d4d4d8;\n            --accent: #f4f4f5;\n            --accent-foreground: #09090b;\n            --success: #34d399;\n            --info: #60a5fa;\n            --danger: #f87171;\n            --shadow: 0 32px 80px rgba(0, 0, 0, 0.45);\n        }\n\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n            font-family: \"Segoe UI\", \"Inter\", \"Helvetica Neue\", sans-serif;\n        }\n\n        body {\n            min-height: 100vh;\n            background:\n                radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 28%),\n                radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.14), transparent 26%),\n                linear-gradient(180deg, #09090b 0%, #111827 100%);\n            color: var(--text);\n        }\n\n        .page {\n            position: relative;\n            min-height: 100vh;\n            width: 100%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            padding: 24px;\n            overflow: hidden;\n        }\n\n        .ambient {\n            position: absolute;\n            border-radius: 999px;\n            filter: blur(60px);\n            opacity: 0.42;\n            pointer-events: none;\n        }\n\n        .ambientOne {\n            top: 8%;\n            left: 10%;\n            width: 220px;\n            height: 220px;\n            background: rgba(96, 165, 250, 0.22);\n        }\n\n        .ambientTwo {\n            right: 12%;\n            bottom: 10%;\n            width: 260px;\n            height: 260px;\n            background: rgba(244, 114, 182, 0.18);\n        }\n\n        .wrapper {\n            width: 100%;\n            max-width: 560px;\n            position: relative;\n            z-index: 1;\n        }\n\n        .brandBar {\n            display: flex;\n            align-items: center;\n            gap: 14px;\n            margin-bottom: 18px;\n            padding: 0 6px;\n        }\n\n        .brandMark {\n            width: 42px;\n            height: 42px;\n            display: inline-flex;\n            align-items: center;\n            justify-content: center;\n            border-radius: 14px;\n            background: linear-gradient(135deg, rgba(250, 250, 250, 0.95), rgba(161, 161, 170, 0.86));\n            color: #09090b;\n            font-weight: 700;\n            letter-spacing: 0.08em;\n            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);\n        }\n\n        .brandName {\n            font-size: 0.98rem;\n            font-weight: 700;\n            letter-spacing: 0.04em;\n        }\n\n        .brandHint {\n            color: var(--muted);\n            font-size: 0.84rem;\n        }\n\n        .shell {\n            background: linear-gradient(180deg, rgba(24, 24, 27, 0.94) 0%, rgba(9, 9, 11, 0.98) 100%);\n            border: 1px solid var(--border);\n            border-radius: 24px;\n            padding: 28px;\n            box-shadow: var(--shadow);\n            backdrop-filter: blur(16px);\n        }\n\n        .stack {\n            display: flex;\n            flex-direction: column;\n            gap: 18px;\n        }\n\n        .stack-center {\n            text-align: center;\n            align-items: center;\n        }\n\n        .hero {\n            gap: 14px;\n        }\n\n        .eyebrow {\n            display: inline-flex;\n            align-items: center;\n            justify-content: center;\n            min-height: 30px;\n            padding: 0 12px;\n            border-radius: 999px;\n            border: 1px solid var(--border-strong);\n            background: rgba(255, 255, 255, 0.04);\n            color: var(--muted-strong);\n            font-size: 0.76rem;\n            font-weight: 700;\n            letter-spacing: 0.08em;\n            text-transform: uppercase;\n        }\n\n        .eyebrow-success {\n            color: var(--success);\n            border-color: rgba(52, 211, 153, 0.28);\n            background: rgba(52, 211, 153, 0.08);\n        }\n\n        .eyebrow-info {\n            color: var(--info);\n            border-color: rgba(96, 165, 250, 0.26);\n            background: rgba(96, 165, 250, 0.08);\n        }\n\n        .eyebrow-danger {\n            color: var(--danger);\n            border-color: rgba(248, 113, 113, 0.26);\n            background: rgba(248, 113, 113, 0.08);\n        }\n\n        .title {\n            font-size: clamp(1.8rem, 4vw, 2.35rem);\n            line-height: 1.08;\n            font-weight: 700;\n            letter-spacing: -0.04em;\n        }\n\n        .subtitle {\n            color: var(--muted);\n            font-size: 0.98rem;\n            line-height: 1.65;\n            max-width: 42ch;\n        }\n\n        .highlight {\n            font-weight: 700;\n            color: var(--muted-strong);\n        }\n\n        .highlight-info {\n            color: var(--info);\n        }\n\n        .highlight-danger {\n            color: var(--danger);\n        }\n\n        .metaGrid {\n            width: 100%;\n            display: grid;\n            grid-template-columns: repeat(2, minmax(0, 1fr));\n            gap: 12px;\n            margin-top: 8px;\n        }\n\n        .metaCard {\n            padding: 14px 16px;\n            text-align: left;\n            border-radius: 18px;\n            border: 1px solid var(--border);\n            background: var(--panel-soft);\n        }\n\n        .metaLabel {\n            display: block;\n            margin-bottom: 8px;\n            color: var(--muted);\n            font-size: 0.76rem;\n            letter-spacing: 0.08em;\n            text-transform: uppercase;\n        }\n\n        code {\n            color: var(--text);\n            font-size: 0.88rem;\n            word-break: break-word;\n        }\n\n        .sectionHeader {\n            display: flex;\n            flex-direction: column;\n            gap: 8px;\n        }\n\n        .sectionTitle {\n            font-size: 1.4rem;\n            line-height: 1.15;\n            letter-spacing: -0.03em;\n        }\n\n        .sectionText {\n            color: var(--muted);\n            line-height: 1.6;\n        }\n\n        .divider {\n            position: relative;\n            text-align: center;\n            color: var(--muted);\n            font-size: 0.82rem;\n            letter-spacing: 0.06em;\n            text-transform: uppercase;\n        }\n\n        .divider::before {\n            content: \"\";\n            position: absolute;\n            top: 50%;\n            left: 0;\n            right: 0;\n            border-top: 1px solid var(--border);\n        }\n\n        .divider span {\n            position: relative;\n            display: inline-block;\n            padding: 0 12px;\n            background: var(--panel-strong);\n        }\n\n        .form {\n            display: flex;\n            flex-direction: column;\n            gap: 14px;\n        }\n\n        .field {\n            display: flex;\n            flex-direction: column;\n            gap: 8px;\n        }\n\n        .label {\n            color: var(--muted-strong);\n            font-size: 0.92rem;\n            font-weight: 600;\n        }\n\n        .helper {\n            color: var(--muted);\n            font-size: 0.9rem;\n            line-height: 1.55;\n        }\n\n        .selectionList {\n            display: flex;\n            flex-direction: column;\n            gap: 12px;\n        }\n\n        .selectionList li {\n            list-style: none;\n        }\n\n        .selectionList li button {\n            display: block;\n            width: 100%;\n            text-align: left;\n        }\n\n        input {\n            display: block;\n            width: 100%;\n            min-height: 48px;\n            padding: 0 14px;\n            border: 1px solid var(--border-strong);\n            border-radius: 14px;\n            background: rgba(9, 9, 11, 0.9);\n            color: var(--text);\n            outline: none;\n            transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;\n        }\n\n        input::placeholder {\n            color: #71717a;\n        }\n\n        input:focus {\n            border-color: rgba(96, 165, 250, 0.5);\n            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);\n            background: rgba(9, 9, 11, 1);\n        }\n\n        button {\n            width: 100%;\n            min-height: 48px;\n            padding: 0 16px;\n            border-radius: 14px;\n            border: 1px solid var(--border-strong);\n            background: rgba(24, 24, 27, 0.88);\n            color: var(--text);\n            font-size: 0.95rem;\n            font-weight: 600;\n            cursor: pointer;\n            transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;\n        }\n\n        button:hover {\n            transform: translateY(-1px);\n            border-color: rgba(255, 255, 255, 0.2);\n            background: rgba(39, 39, 42, 0.95);\n            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);\n        }\n\n        button:focus-visible {\n            outline: none;\n            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.14);\n        }\n\n        .buttonPrimary {\n            background: var(--accent);\n            color: var(--accent-foreground);\n        }\n\n        .buttonPrimary:hover {\n            background: #ffffff;\n        }\n\n        .buttonRow {\n            display: flex;\n            flex-direction: column;\n            gap: 12px;\n        }\n\n        .buttonLabel {\n            display: block;\n            font-weight: 600;\n        }\n\n        .buttonHint {\n            display: block;\n            margin-top: 4px;\n            color: var(--muted);\n            font-size: 0.84rem;\n            font-weight: 500;\n        }\n\n        .buttonPrimary .buttonHint {\n            color: rgba(9, 9, 11, 0.72);\n        }\n\n        .panel {\n            padding: 18px;\n            border-radius: 20px;\n            border: 1px solid var(--border);\n            background: var(--panel-soft);\n        }\n\n        .panel strong {\n            color: var(--muted-strong);\n        }\n\n        @media (max-width: 640px) {\n            .page {\n                padding: 16px;\n            }\n\n            .shell {\n                padding: 22px;\n                border-radius: 22px;\n            }\n\n            .metaGrid {\n                grid-template-columns: 1fr;\n            }\n        }\n    </style><title>ionscale</title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>\n        /* Palette mirrors kontrol's (kontrol/src/index.css): the same OKLCH\n           tokens derived from --brand-hue, the same 0.625rem radius scale, the\n           same neutrals. kontrol switches themes with a .dark class on <html>;\n           these pages are server-rendered with no toggle, so they follow the\n           operating system instead. Light is the :root default, as in kontrol. */\n        :root {\n            --brand-hue: 267.256;\n            --brand-chroma: 0.19;\n\n            --radius: 0.625rem;\n            --radius-md: calc(var(--radius) - 2px);\n            --radius-lg: var(--radius);\n            --radius-xl: calc(var(--radius) + 4px);\n            --radius-2xl: calc(var(--radius) + 8px);\n            --radius-3xl: calc(var(--radius) + 12px);\n\n            --background: oklch(0.97 0.004 var(--brand-hue));\n            --foreground: oklch(0.21 0.01 var(--brand-hue));\n            --card: oklch(0.96 0.005 var(--brand-hue));\n            --muted: oklch(0.95 0.006 var(--brand-hue));\n            --muted-foreground: oklch(0.55 0.02 var(--brand-hue));\n            --border: oklch(0.87 0.008 var(--brand-hue) / 0.5);\n            --input: oklch(0.87 0.008 var(--brand-hue) / 0.5);\n            --primary: oklch(0.48 var(--brand-chroma) var(--brand-hue));\n            --primary-foreground: oklch(0.98 0.01 var(--brand-hue));\n            --ring: oklch(0.55 calc(var(--brand-chroma) * 0.6) var(--brand-hue));\n            --destructive: oklch(0.577 0.245 27.325);\n            --success: oklch(0.52 0.13 155);\n\n            --brand-logo-light: oklch(0.6 calc(var(--brand-chroma) * 0.9) var(--brand-hue));\n            --brand-logo-mid: oklch(0.52 var(--brand-chroma) var(--brand-hue));\n            --brand-logo-dark: oklch(0.46 var(--brand-chroma) var(--brand-hue));\n\n            --shadow: 0 24px 60px oklch(0.21 0.01 var(--brand-hue) / 0.10);\n        }\n\n        @media (prefers-color-scheme: dark) {\n            :root {\n                /* kontrol damps chroma by 0.84 on dark surfaces. */\n                --brand-chroma: calc(0.19 * 0.84);\n\n                --background: oklch(0.16 0.008 var(--brand-hue));\n                --foreground: oklch(0.94 0.005 var(--brand-hue));\n                --card: oklch(0.19 0.008 var(--brand-hue));\n                --muted: oklch(0.22 0.008 var(--brand-hue));\n                --muted-foreground: oklch(0.71 0.01 var(--brand-hue) / 0.85);\n                --border: oklch(0.55 0.01 var(--brand-hue) / 0.2);\n                --input: oklch(0.55 0.01 var(--brand-hue) / 0.2);\n                --primary: oklch(0.70 var(--brand-chroma) var(--brand-hue));\n                --primary-foreground: oklch(0.16 0.02 var(--brand-hue));\n                --ring: oklch(0.60 calc(var(--brand-chroma) * 0.6) var(--brand-hue));\n                --destructive: oklch(0.704 0.191 22.216);\n                --success: oklch(0.72 0.15 155);\n\n                --brand-logo-light: oklch(0.72 calc(var(--brand-chroma) * 0.9) var(--brand-hue));\n                --brand-logo-mid: oklch(0.64 var(--brand-chroma) var(--brand-hue));\n                --brand-logo-dark: oklch(0.56 var(--brand-chroma) var(--brand-hue));\n\n                --shadow: 0 24px 60px oklch(0 0 0 / 0.5);\n            }\n        }\n\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n\n        html {\n            /* Tailwind's default sans stack, which is what kontrol renders in. */\n            font-family: ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto,\n                \"Helvetica Neue\", Arial, \"Noto Sans\", sans-serif;\n        }\n\n        body {\n            min-height: 100vh;\n            background: var(--background);\n            color: var(--foreground);\n            -webkit-font-smoothing: antialiased;\n        }\n\n        .page {\n            position: relative;\n            min-height: 100vh;\n            width: 100%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            padding: 24px;\n            overflow: hidden;\n        }\n\n        /* Echoes kontrol's brand wash behind the landing surface. */\n        .ambient {\n            position: absolute;\n            border-radius: 999px;\n            filter: blur(90px);\n            opacity: 0.22;\n            pointer-events: none;\n        }\n\n        .ambientOne {\n            top: 4%;\n            left: 6%;\n            width: 320px;\n            height: 320px;\n            background: var(--brand-logo-light);\n        }\n\n        .ambientTwo {\n            right: 8%;\n            bottom: 6%;\n            width: 360px;\n            height: 360px;\n            background: var(--brand-logo-dark);\n        }\n\n        .wrapper {\n            width: 100%;\n            max-width: 560px;\n            position: relative;\n            z-index: 1;\n        }\n\n        .brandBar {\n            display: flex;\n            align-items: center;\n            gap: 12px;\n            margin-bottom: 16px;\n            padding: 0 4px;\n        }\n\n        .brandMark {\n            width: 40px;\n            height: 40px;\n            display: inline-flex;\n            align-items: center;\n            justify-content: center;\n            border-radius: var(--radius-xl);\n            background: linear-gradient(135deg, var(--brand-logo-light), var(--brand-logo-dark));\n            color: var(--primary-foreground);\n            font-weight: 700;\n            letter-spacing: 0.06em;\n            box-shadow: 0 8px 20px oklch(0.48 var(--brand-chroma) var(--brand-hue) / 0.28);\n        }\n\n        .brandName {\n            font-size: 0.95rem;\n            font-weight: 600;\n            letter-spacing: -0.01em;\n        }\n\n        .brandHint {\n            color: var(--muted-foreground);\n            font-size: 0.82rem;\n        }\n\n        /* kontrol's card: flat surface, hairline border, generous radius. */\n        .shell {\n            background: var(--card);\n            border: 1px solid var(--border);\n            border-radius: var(--radius-3xl);\n            padding: 28px;\n            box-shadow: var(--shadow);\n        }\n\n        .stack {\n            display: flex;\n            flex-direction: column;\n            gap: 18px;\n        }\n\n        .stack-center {\n            text-align: center;\n            align-items: center;\n        }\n\n        .hero {\n            gap: 14px;\n        }\n\n        .eyebrow {\n            display: inline-flex;\n            align-items: center;\n            justify-content: center;\n            min-height: 26px;\n            padding: 0 10px;\n            border-radius: 999px;\n            border: 1px solid var(--border);\n            background: var(--muted);\n            color: var(--muted-foreground);\n            font-size: 0.72rem;\n            font-weight: 600;\n            letter-spacing: 0.06em;\n            text-transform: uppercase;\n        }\n\n        .eyebrow-success {\n            color: var(--success);\n            border-color: color-mix(in oklch, var(--success) 30%, transparent);\n            background: color-mix(in oklch, var(--success) 10%, transparent);\n        }\n\n        .eyebrow-info {\n            color: var(--primary);\n            border-color: color-mix(in oklch, var(--primary) 30%, transparent);\n            background: color-mix(in oklch, var(--primary) 10%, transparent);\n        }\n\n        .eyebrow-danger {\n            color: var(--destructive);\n            border-color: color-mix(in oklch, var(--destructive) 30%, transparent);\n            background: color-mix(in oklch, var(--destructive) 10%, transparent);\n        }\n\n        .title {\n            font-size: clamp(1.55rem, 3.4vw, 1.95rem);\n            line-height: 1.15;\n            font-weight: 600;\n            letter-spacing: -0.02em;\n            text-wrap: balance;\n        }\n\n        .subtitle {\n            color: var(--muted-foreground);\n            font-size: 0.95rem;\n            line-height: 1.6;\n            max-width: 46ch;\n        }\n\n        .highlight {\n            font-weight: 600;\n            color: var(--foreground);\n        }\n\n        .highlight-info {\n            color: var(--primary);\n        }\n\n        .highlight-danger {\n            color: var(--destructive);\n        }\n\n        .metaGrid {\n            width: 100%;\n            display: grid;\n            grid-template-columns: repeat(2, minmax(0, 1fr));\n            gap: 12px;\n            margin-top: 8px;\n        }\n\n        .metaCard {\n            padding: 14px 16px;\n            text-align: left;\n            border-radius: var(--radius-xl);\n            border: 1px solid var(--border);\n            background: var(--muted);\n        }\n\n        .metaLabel {\n            display: block;\n            margin-bottom: 8px;\n            color: var(--muted-foreground);\n            font-size: 0.72rem;\n            letter-spacing: 0.06em;\n            text-transform: uppercase;\n        }\n\n        code {\n            color: var(--foreground);\n            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;\n            font-size: 0.85rem;\n            word-break: break-word;\n        }\n\n        .sectionHeader {\n            display: flex;\n            flex-direction: column;\n            gap: 8px;\n        }\n\n        .sectionTitle {\n            font-size: 1.3rem;\n            font-weight: 600;\n            line-height: 1.2;\n            letter-spacing: -0.02em;\n        }\n\n        .sectionText {\n            color: var(--muted-foreground);\n            line-height: 1.6;\n        }\n\n        .divider {\n            position: relative;\n            text-align: center;\n            color: var(--muted-foreground);\n            font-size: 0.78rem;\n            letter-spacing: 0.06em;\n            text-transform: uppercase;\n        }\n\n        .divider::before {\n            content: \"\";\n            position: absolute;\n            top: 50%;\n            left: 0;\n            right: 0;\n            border-top: 1px solid var(--border);\n        }\n\n        .divider span {\n            position: relative;\n            display: inline-block;\n            padding: 0 12px;\n            background: var(--card);\n        }\n\n        .form {\n            display: flex;\n            flex-direction: column;\n            gap: 14px;\n        }\n\n        .field {\n            display: flex;\n            flex-direction: column;\n            gap: 8px;\n        }\n\n        .label {\n            color: var(--foreground);\n            font-size: 0.88rem;\n            font-weight: 500;\n        }\n\n        .helper {\n            color: var(--muted-foreground);\n            font-size: 0.88rem;\n            line-height: 1.55;\n        }\n\n        .selectionList {\n            display: flex;\n            flex-direction: column;\n            gap: 10px;\n        }\n\n        .selectionList li {\n            list-style: none;\n        }\n\n        .selectionList li button {\n            display: block;\n            width: 100%;\n            text-align: left;\n        }\n\n        input {\n            display: block;\n            width: 100%;\n            min-height: 40px;\n            padding: 0 12px;\n            font: inherit;\n            font-size: 0.92rem;\n            border: 1px solid var(--input);\n            border-radius: var(--radius-lg);\n            background: var(--background);\n            color: var(--foreground);\n            outline: none;\n            transition: border-color 120ms ease, box-shadow 120ms ease;\n        }\n\n        input::placeholder {\n            color: var(--muted-foreground);\n        }\n\n        input:focus-visible {\n            border-color: var(--ring);\n            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 35%, transparent);\n        }\n\n        button {\n            width: 100%;\n            min-height: 40px;\n            padding: 10px 16px;\n            border-radius: var(--radius-lg);\n            border: 1px solid var(--border);\n            background: var(--background);\n            color: var(--foreground);\n            font: inherit;\n            font-size: 0.92rem;\n            font-weight: 500;\n            cursor: pointer;\n            transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;\n        }\n\n        button:hover {\n            background: var(--muted);\n        }\n\n        button:focus-visible {\n            outline: none;\n            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 35%, transparent);\n        }\n\n        .buttonPrimary {\n            background: var(--primary);\n            border-color: transparent;\n            color: var(--primary-foreground);\n        }\n\n        .buttonPrimary:hover {\n            background: color-mix(in oklch, var(--primary) 90%, var(--foreground));\n        }\n\n        .buttonRow {\n            display: flex;\n            flex-direction: column;\n            gap: 10px;\n        }\n\n        .buttonLabel {\n            display: block;\n            font-weight: 500;\n        }\n\n        .buttonHint {\n            display: block;\n            margin-top: 4px;\n            color: var(--muted-foreground);\n            font-size: 0.82rem;\n            font-weight: 400;\n        }\n\n        .buttonPrimary .buttonHint {\n            color: color-mix(in oklch, var(--primary-foreground) 78%, transparent);\n        }\n\n        .panel {\n            padding: 16px 18px;\n            border-radius: var(--radius-xl);\n            border: 1px solid var(--border);\n            background: var(--muted);\n        }\n\n        .panel strong {\n            color: var(--foreground);\n        }\n\n        /* The \"what to do next\" block on the denial screens. Left-aligned even\n           inside a centred hero: it is an instruction to follow, not a headline. */\n        .nextStep {\n            width: 100%;\n            margin-top: 4px;\n            text-align: left;\n        }\n\n        .panelLabel {\n            display: block;\n            margin-bottom: 6px;\n            color: var(--muted-foreground);\n            font-size: 0.72rem;\n            font-weight: 600;\n            letter-spacing: 0.06em;\n            text-transform: uppercase;\n        }\n\n        .panelText {\n            color: var(--foreground);\n            font-size: 0.92rem;\n            line-height: 1.6;\n        }\n\n        @media (max-width: 640px) {\n            .page {\n                padding: 16px;\n            }\n\n            .shell {\n                padding: 22px;\n                border-radius: var(--radius-2xl);\n            }\n\n            .metaGrid {\n                grid-template-columns: 1fr;\n            }\n        }\n    </style><title>ionscale</title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

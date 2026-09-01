@@ -622,6 +622,52 @@ func (s *Service) EnableTailnetLock(ctx context.Context, req *connect.Request[ap
 	return connect.NewResponse(&api.EnableTailnetLockResponse{}), nil
 }
 
+func (s *Service) GetTailnetLockStatus(ctx context.Context, req *connect.Request[api.GetTailnetLockStatusRequest]) (*connect.Response[api.GetTailnetLockStatusResponse], error) {
+	principal := CurrentPrincipal(ctx)
+	if !principal.IsSystemAdmin() && !principal.IsTailnetAdmin(req.Msg.TailnetId) {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("permission denied"))
+	}
+
+	tailnet, err := s.repository.GetTailnet(ctx, req.Msg.TailnetId)
+	if err != nil {
+		return nil, logError(err)
+	}
+	if tailnet == nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("tailnet not found"))
+	}
+
+	// GetTailnetTKAState returns a zero-valued state rather than nil when the
+	// tailnet has never had an authority, so this needs no nil handling.
+	state, err := s.repository.GetTailnetTKAState(ctx, req.Msg.TailnetId)
+	if err != nil {
+		return nil, logError(err)
+	}
+
+	machines, err := s.repository.ListMachineByTailnet(ctx, req.Msg.TailnetId)
+	if err != nil {
+		return nil, logError(err)
+	}
+
+	nodes := make([]*api.NodeLockState, 0, len(machines))
+	for _, m := range machines {
+		nodes = append(nodes, &api.NodeLockState{
+			MachineId: m.ID,
+			Name:      m.Name,
+			// A stored signature is what locked peers verify; without one the
+			// node is invisible to them even though it is registered.
+			Signed: len(m.KeySignature) != 0,
+		})
+	}
+
+	return connect.NewResponse(&api.GetTailnetLockStatusResponse{
+		CapabilityEnabled: tailnet.TailnetLockEnabled,
+		AuthorityActive:   state.Enabled,
+		AuthorityDisabled: state.Disabled,
+		Head:              state.Head,
+		Nodes:             nodes,
+	}), nil
+}
+
 func (s *Service) DisableTailnetLock(ctx context.Context, req *connect.Request[api.DisableTailnetLockRequest]) (*connect.Response[api.DisableTailnetLockResponse], error) {
 	principal := CurrentPrincipal(ctx)
 	if !principal.IsSystemAdmin() && !principal.IsTailnetAdmin(req.Msg.TailnetId) {

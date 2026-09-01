@@ -120,7 +120,19 @@ func (r *repository) GetOrCreateUserWithAccount(ctx context.Context, tailnet *Ta
 		return nil, false, tx.Error
 	}
 
-	return user, user.ID == id, nil
+	created := user.ID == id
+
+	// Keep the per-tailnet user in step with the account label, for the same
+	// reason GetOrCreateAccount refreshes it: this name is what the Tailscale
+	// client displays, and Attrs does not touch existing rows.
+	if !created && account.LoginName != "" && user.Name != account.LoginName {
+		if err := r.withContext(ctx).Model(user).Update("name", account.LoginName).Error; err != nil {
+			return nil, false, err
+		}
+		user.Name = account.LoginName
+	}
+
+	return user, created, nil
 }
 
 func (r *repository) GetUser(ctx context.Context, userID uint64) (*User, error) {

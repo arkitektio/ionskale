@@ -96,6 +96,9 @@ const (
 	// IonscaleServiceDisableTailnetLockProcedure is the fully-qualified name of the IonscaleService's
 	// DisableTailnetLock RPC.
 	IonscaleServiceDisableTailnetLockProcedure = "/ionscale.v1.IonscaleService/DisableTailnetLock"
+	// IonscaleServiceGetTailnetLockStatusProcedure is the fully-qualified name of the IonscaleService's
+	// GetTailnetLockStatus RPC.
+	IonscaleServiceGetTailnetLockStatusProcedure = "/ionscale.v1.IonscaleService/GetTailnetLockStatus"
 	// IonscaleServiceGetDNSConfigProcedure is the fully-qualified name of the IonscaleService's
 	// GetDNSConfig RPC.
 	IonscaleServiceGetDNSConfigProcedure = "/ionscale.v1.IonscaleService/GetDNSConfig"
@@ -196,6 +199,7 @@ type IonscaleServiceClient interface {
 	DisableMachineAuthorization(context.Context, *connect_go.Request[v1.DisableMachineAuthorizationRequest]) (*connect_go.Response[v1.DisableMachineAuthorizationResponse], error)
 	EnableTailnetLock(context.Context, *connect_go.Request[v1.EnableTailnetLockRequest]) (*connect_go.Response[v1.EnableTailnetLockResponse], error)
 	DisableTailnetLock(context.Context, *connect_go.Request[v1.DisableTailnetLockRequest]) (*connect_go.Response[v1.DisableTailnetLockResponse], error)
+	GetTailnetLockStatus(context.Context, *connect_go.Request[v1.GetTailnetLockStatusRequest]) (*connect_go.Response[v1.GetTailnetLockStatusResponse], error)
 	GetDNSConfig(context.Context, *connect_go.Request[v1.GetDNSConfigRequest]) (*connect_go.Response[v1.GetDNSConfigResponse], error)
 	SetDNSConfig(context.Context, *connect_go.Request[v1.SetDNSConfigRequest]) (*connect_go.Response[v1.SetDNSConfigResponse], error)
 	GetIAMPolicy(context.Context, *connect_go.Request[v1.GetIAMPolicyRequest]) (*connect_go.Response[v1.GetIAMPolicyResponse], error)
@@ -336,6 +340,11 @@ func NewIonscaleServiceClient(httpClient connect_go.HTTPClient, baseURL string, 
 		disableTailnetLock: connect_go.NewClient[v1.DisableTailnetLockRequest, v1.DisableTailnetLockResponse](
 			httpClient,
 			baseURL+IonscaleServiceDisableTailnetLockProcedure,
+			opts...,
+		),
+		getTailnetLockStatus: connect_go.NewClient[v1.GetTailnetLockStatusRequest, v1.GetTailnetLockStatusResponse](
+			httpClient,
+			baseURL+IonscaleServiceGetTailnetLockStatusProcedure,
 			opts...,
 		),
 		getDNSConfig: connect_go.NewClient[v1.GetDNSConfigRequest, v1.GetDNSConfigResponse](
@@ -489,6 +498,7 @@ type ionscaleServiceClient struct {
 	disableMachineAuthorization *connect_go.Client[v1.DisableMachineAuthorizationRequest, v1.DisableMachineAuthorizationResponse]
 	enableTailnetLock           *connect_go.Client[v1.EnableTailnetLockRequest, v1.EnableTailnetLockResponse]
 	disableTailnetLock          *connect_go.Client[v1.DisableTailnetLockRequest, v1.DisableTailnetLockResponse]
+	getTailnetLockStatus        *connect_go.Client[v1.GetTailnetLockStatusRequest, v1.GetTailnetLockStatusResponse]
 	getDNSConfig                *connect_go.Client[v1.GetDNSConfigRequest, v1.GetDNSConfigResponse]
 	setDNSConfig                *connect_go.Client[v1.SetDNSConfigRequest, v1.SetDNSConfigResponse]
 	getIAMPolicy                *connect_go.Client[v1.GetIAMPolicyRequest, v1.GetIAMPolicyResponse]
@@ -619,6 +629,11 @@ func (c *ionscaleServiceClient) EnableTailnetLock(ctx context.Context, req *conn
 // DisableTailnetLock calls ionscale.v1.IonscaleService.DisableTailnetLock.
 func (c *ionscaleServiceClient) DisableTailnetLock(ctx context.Context, req *connect_go.Request[v1.DisableTailnetLockRequest]) (*connect_go.Response[v1.DisableTailnetLockResponse], error) {
 	return c.disableTailnetLock.CallUnary(ctx, req)
+}
+
+// GetTailnetLockStatus calls ionscale.v1.IonscaleService.GetTailnetLockStatus.
+func (c *ionscaleServiceClient) GetTailnetLockStatus(ctx context.Context, req *connect_go.Request[v1.GetTailnetLockStatusRequest]) (*connect_go.Response[v1.GetTailnetLockStatusResponse], error) {
+	return c.getTailnetLockStatus.CallUnary(ctx, req)
 }
 
 // GetDNSConfig calls ionscale.v1.IonscaleService.GetDNSConfig.
@@ -769,6 +784,7 @@ type IonscaleServiceHandler interface {
 	DisableMachineAuthorization(context.Context, *connect_go.Request[v1.DisableMachineAuthorizationRequest]) (*connect_go.Response[v1.DisableMachineAuthorizationResponse], error)
 	EnableTailnetLock(context.Context, *connect_go.Request[v1.EnableTailnetLockRequest]) (*connect_go.Response[v1.EnableTailnetLockResponse], error)
 	DisableTailnetLock(context.Context, *connect_go.Request[v1.DisableTailnetLockRequest]) (*connect_go.Response[v1.DisableTailnetLockResponse], error)
+	GetTailnetLockStatus(context.Context, *connect_go.Request[v1.GetTailnetLockStatusRequest]) (*connect_go.Response[v1.GetTailnetLockStatusResponse], error)
 	GetDNSConfig(context.Context, *connect_go.Request[v1.GetDNSConfigRequest]) (*connect_go.Response[v1.GetDNSConfigResponse], error)
 	SetDNSConfig(context.Context, *connect_go.Request[v1.SetDNSConfigRequest]) (*connect_go.Response[v1.SetDNSConfigResponse], error)
 	GetIAMPolicy(context.Context, *connect_go.Request[v1.GetIAMPolicyRequest]) (*connect_go.Response[v1.GetIAMPolicyResponse], error)
@@ -905,6 +921,11 @@ func NewIonscaleServiceHandler(svc IonscaleServiceHandler, opts ...connect_go.Ha
 	ionscaleServiceDisableTailnetLockHandler := connect_go.NewUnaryHandler(
 		IonscaleServiceDisableTailnetLockProcedure,
 		svc.DisableTailnetLock,
+		opts...,
+	)
+	ionscaleServiceGetTailnetLockStatusHandler := connect_go.NewUnaryHandler(
+		IonscaleServiceGetTailnetLockStatusProcedure,
+		svc.GetTailnetLockStatus,
 		opts...,
 	)
 	ionscaleServiceGetDNSConfigHandler := connect_go.NewUnaryHandler(
@@ -1076,6 +1097,8 @@ func NewIonscaleServiceHandler(svc IonscaleServiceHandler, opts ...connect_go.Ha
 			ionscaleServiceEnableTailnetLockHandler.ServeHTTP(w, r)
 		case IonscaleServiceDisableTailnetLockProcedure:
 			ionscaleServiceDisableTailnetLockHandler.ServeHTTP(w, r)
+		case IonscaleServiceGetTailnetLockStatusProcedure:
+			ionscaleServiceGetTailnetLockStatusHandler.ServeHTTP(w, r)
 		case IonscaleServiceGetDNSConfigProcedure:
 			ionscaleServiceGetDNSConfigHandler.ServeHTTP(w, r)
 		case IonscaleServiceSetDNSConfigProcedure:
@@ -1217,6 +1240,10 @@ func (UnimplementedIonscaleServiceHandler) EnableTailnetLock(context.Context, *c
 
 func (UnimplementedIonscaleServiceHandler) DisableTailnetLock(context.Context, *connect_go.Request[v1.DisableTailnetLockRequest]) (*connect_go.Response[v1.DisableTailnetLockResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("ionscale.v1.IonscaleService.DisableTailnetLock is not implemented"))
+}
+
+func (UnimplementedIonscaleServiceHandler) GetTailnetLockStatus(context.Context, *connect_go.Request[v1.GetTailnetLockStatusRequest]) (*connect_go.Response[v1.GetTailnetLockStatusResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("ionscale.v1.IonscaleService.GetTailnetLockStatus is not implemented"))
 }
 
 func (UnimplementedIonscaleServiceHandler) GetDNSConfig(context.Context, *connect_go.Request[v1.GetDNSConfigRequest]) (*connect_go.Response[v1.GetDNSConfigResponse], error) {

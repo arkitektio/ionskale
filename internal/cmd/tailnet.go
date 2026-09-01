@@ -44,6 +44,7 @@ func tailnetCommand() *cobra.Command {
 	command.AddCommand(disableMachineAuthorizationCommand())
 	command.AddCommand(enableTailnetLockCommand())
 	command.AddCommand(disableTailnetLockCommand())
+	command.AddCommand(tailnetLockStatusCommand())
 	command.AddCommand(getDERPMap())
 	command.AddCommand(setDERPMap())
 	command.AddCommand(resetDERPMap())
@@ -458,6 +459,76 @@ func disableMachineAuthorizationCommand() *cobra.Command {
 		if _, err := tc.Client().DisableMachineAuthorization(cmd.Context(), connect.NewRequest(&req)); err != nil {
 			return err
 		}
+
+		return nil
+	}
+
+	return command
+}
+
+// tailnetLockStatusCommand reports both halves of tailnet lock: the capability
+// the control plane grants, and the key authority that only a client can
+// establish. --json exists because this is the status kontrol renders, and
+// parsing a human table would be needlessly brittle.
+func tailnetLockStatusCommand() *cobra.Command {
+	command, tc := prepareCommand(true, &cobra.Command{
+		Use:          "tailnet-lock-status",
+		Short:        "Show whether the tailnet-lock capability is granted, whether a key authority is active, and which nodes are signed.",
+		SilenceUsage: true,
+	})
+
+	var asJson bool
+	command.Flags().BoolVar(&asJson, "json", false, "When enabled, render output as json")
+
+	command.RunE = func(cmd *cobra.Command, args []string) error {
+		req := api.GetTailnetLockStatusRequest{TailnetId: tc.TailnetID()}
+
+		resp, err := tc.Client().GetTailnetLockStatus(cmd.Context(), connect.NewRequest(&req))
+		if err != nil {
+			return err
+		}
+
+		msg := resp.Msg
+
+		if asJson {
+			// Field names are the proto's, so the shape is the contract.
+			out := map[string]interface{}{
+				"capability_enabled": msg.CapabilityEnabled,
+				"authority_active":   msg.AuthorityActive,
+				"authority_disabled": msg.AuthorityDisabled,
+				"head":               msg.Head,
+			}
+			nodes := make([]map[string]interface{}, 0, len(msg.Nodes))
+			for _, n := range msg.Nodes {
+				nodes = append(nodes, map[string]interface{}{
+					"machine_id": fmt.Sprintf("%d", n.MachineId),
+					"name":       n.Name,
+					"signed":     n.Signed,
+				})
+			}
+			out["nodes"] = nodes
+
+			m, err := json.MarshalIndent(out, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(m))
+			return nil
+		}
+
+		fmt.Printf("Capability granted:  %t\n", msg.CapabilityEnabled)
+		fmt.Printf("Authority active:    %t\n", msg.AuthorityActive)
+		fmt.Printf("Authority disabled:  %t\n", msg.AuthorityDisabled)
+		if msg.Head != "" {
+			fmt.Printf("Head:                %s\n", msg.Head)
+		}
+		fmt.Println()
+
+		tbl := table.New("MACHINE ID", "NAME", "SIGNED")
+		for _, n := range msg.Nodes {
+			tbl.AddRow(n.MachineId, n.Name, n.Signed)
+		}
+		tbl.Print()
 
 		return nil
 	}

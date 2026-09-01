@@ -1771,6 +1771,195 @@ func (*DisableTailnetLockResponse) Descriptor() ([]byte, []int) {
 	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{36}
 }
 
+// NodeLockState is one machine's standing under tailnet lock. A machine whose
+// node key carries no authority signature cannot be reached by locked peers
+// until an existing signing node signs it.
+type NodeLockState struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MachineId     uint64                 `protobuf:"varint,1,opt,name=machine_id,json=machineId,proto3" json:"machine_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Signed        bool                   `protobuf:"varint,3,opt,name=signed,proto3" json:"signed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeLockState) Reset() {
+	*x = NodeLockState{}
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeLockState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeLockState) ProtoMessage() {}
+
+func (x *NodeLockState) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeLockState.ProtoReflect.Descriptor instead.
+func (*NodeLockState) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *NodeLockState) GetMachineId() uint64 {
+	if x != nil {
+		return x.MachineId
+	}
+	return 0
+}
+
+func (x *NodeLockState) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NodeLockState) GetSigned() bool {
+	if x != nil {
+		return x.Signed
+	}
+	return false
+}
+
+type GetTailnetLockStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TailnetId     uint64                 `protobuf:"varint,1,opt,name=tailnet_id,json=tailnetId,proto3" json:"tailnet_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTailnetLockStatusRequest) Reset() {
+	*x = GetTailnetLockStatusRequest{}
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTailnetLockStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTailnetLockStatusRequest) ProtoMessage() {}
+
+func (x *GetTailnetLockStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTailnetLockStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetTailnetLockStatusRequest) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *GetTailnetLockStatusRequest) GetTailnetId() uint64 {
+	if x != nil {
+		return x.TailnetId
+	}
+	return 0
+}
+
+// GetTailnetLockStatusResponse separates the two things that are easy to
+// conflate: the control plane grants the *capability*, but the key authority
+// itself only exists once a client has run `tailscale lock init`. A tailnet can
+// sit with capability_enabled and no authority indefinitely.
+type GetTailnetLockStatusResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	CapabilityEnabled bool                   `protobuf:"varint,1,opt,name=capability_enabled,json=capabilityEnabled,proto3" json:"capability_enabled,omitempty"`
+	AuthorityActive   bool                   `protobuf:"varint,2,opt,name=authority_active,json=authorityActive,proto3" json:"authority_active,omitempty"`
+	// authority_disabled means an authority existed and was shut down with a
+	// disablement secret, which is not the same as never having had one.
+	AuthorityDisabled bool             `protobuf:"varint,3,opt,name=authority_disabled,json=authorityDisabled,proto3" json:"authority_disabled,omitempty"`
+	Head              string           `protobuf:"bytes,4,opt,name=head,proto3" json:"head,omitempty"`
+	Nodes             []*NodeLockState `protobuf:"bytes,5,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *GetTailnetLockStatusResponse) Reset() {
+	*x = GetTailnetLockStatusResponse{}
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTailnetLockStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTailnetLockStatusResponse) ProtoMessage() {}
+
+func (x *GetTailnetLockStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTailnetLockStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetTailnetLockStatusResponse) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *GetTailnetLockStatusResponse) GetCapabilityEnabled() bool {
+	if x != nil {
+		return x.CapabilityEnabled
+	}
+	return false
+}
+
+func (x *GetTailnetLockStatusResponse) GetAuthorityActive() bool {
+	if x != nil {
+		return x.AuthorityActive
+	}
+	return false
+}
+
+func (x *GetTailnetLockStatusResponse) GetAuthorityDisabled() bool {
+	if x != nil {
+		return x.AuthorityDisabled
+	}
+	return false
+}
+
+func (x *GetTailnetLockStatusResponse) GetHead() string {
+	if x != nil {
+		return x.Head
+	}
+	return ""
+}
+
+func (x *GetTailnetLockStatusResponse) GetNodes() []*NodeLockState {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
 var File_ionscale_v1_tailnets_proto protoreflect.FileDescriptor
 
 const file_ionscale_v1_tailnets_proto_rawDesc = "" +
@@ -1892,7 +2081,21 @@ const file_ionscale_v1_tailnets_proto_rawDesc = "" +
 	"\x19DisableTailnetLockRequest\x12\x1d\n" +
 	"\n" +
 	"tailnet_id\x18\x01 \x01(\x04R\ttailnetId\"\x1c\n" +
-	"\x1aDisableTailnetLockResponseB=Z;github.com/jsiebens/ionscale/pkg/gen/ionscale/v1;ionscalev1b\x06proto3"
+	"\x1aDisableTailnetLockResponse\"Z\n" +
+	"\rNodeLockState\x12\x1d\n" +
+	"\n" +
+	"machine_id\x18\x01 \x01(\x04R\tmachineId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
+	"\x06signed\x18\x03 \x01(\bR\x06signed\"<\n" +
+	"\x1bGetTailnetLockStatusRequest\x12\x1d\n" +
+	"\n" +
+	"tailnet_id\x18\x01 \x01(\x04R\ttailnetId\"\xed\x01\n" +
+	"\x1cGetTailnetLockStatusResponse\x12-\n" +
+	"\x12capability_enabled\x18\x01 \x01(\bR\x11capabilityEnabled\x12)\n" +
+	"\x10authority_active\x18\x02 \x01(\bR\x0fauthorityActive\x12-\n" +
+	"\x12authority_disabled\x18\x03 \x01(\bR\x11authorityDisabled\x12\x12\n" +
+	"\x04head\x18\x04 \x01(\tR\x04head\x120\n" +
+	"\x05nodes\x18\x05 \x03(\v2\x1a.ionscale.v1.NodeLockStateR\x05nodesB=Z;github.com/jsiebens/ionscale/pkg/gen/ionscale/v1;ionscalev1b\x06proto3"
 
 var (
 	file_ionscale_v1_tailnets_proto_rawDescOnce sync.Once
@@ -1906,7 +2109,7 @@ func file_ionscale_v1_tailnets_proto_rawDescGZIP() []byte {
 	return file_ionscale_v1_tailnets_proto_rawDescData
 }
 
-var file_ionscale_v1_tailnets_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_ionscale_v1_tailnets_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_ionscale_v1_tailnets_proto_goTypes = []any{
 	(*Tailnet)(nil),                             // 0: ionscale.v1.Tailnet
 	(*CreateTailnetRequest)(nil),                // 1: ionscale.v1.CreateTailnetRequest
@@ -1945,21 +2148,25 @@ var file_ionscale_v1_tailnets_proto_goTypes = []any{
 	(*EnableTailnetLockResponse)(nil),           // 34: ionscale.v1.EnableTailnetLockResponse
 	(*DisableTailnetLockRequest)(nil),           // 35: ionscale.v1.DisableTailnetLockRequest
 	(*DisableTailnetLockResponse)(nil),          // 36: ionscale.v1.DisableTailnetLockResponse
-	(*DNSConfig)(nil),                           // 37: ionscale.v1.DNSConfig
+	(*NodeLockState)(nil),                       // 37: ionscale.v1.NodeLockState
+	(*GetTailnetLockStatusRequest)(nil),         // 38: ionscale.v1.GetTailnetLockStatusRequest
+	(*GetTailnetLockStatusResponse)(nil),        // 39: ionscale.v1.GetTailnetLockStatusResponse
+	(*DNSConfig)(nil),                           // 40: ionscale.v1.DNSConfig
 }
 var file_ionscale_v1_tailnets_proto_depIdxs = []int32{
-	37, // 0: ionscale.v1.Tailnet.dns_config:type_name -> ionscale.v1.DNSConfig
-	37, // 1: ionscale.v1.CreateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
+	40, // 0: ionscale.v1.Tailnet.dns_config:type_name -> ionscale.v1.DNSConfig
+	40, // 1: ionscale.v1.CreateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
 	0,  // 2: ionscale.v1.CreateTailnetResponse.tailnet:type_name -> ionscale.v1.Tailnet
-	37, // 3: ionscale.v1.UpdateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
+	40, // 3: ionscale.v1.UpdateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
 	0,  // 4: ionscale.v1.UpdateTailnetResponse.tailnet:type_name -> ionscale.v1.Tailnet
 	0,  // 5: ionscale.v1.GetTailnetResponse.tailnet:type_name -> ionscale.v1.Tailnet
 	0,  // 6: ionscale.v1.ListTailnetsResponse.tailnet:type_name -> ionscale.v1.Tailnet
-	7,  // [7:7] is the sub-list for method output_type
-	7,  // [7:7] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	37, // 7: ionscale.v1.GetTailnetLockStatusResponse.nodes:type_name -> ionscale.v1.NodeLockState
+	8,  // [8:8] is the sub-list for method output_type
+	8,  // [8:8] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_ionscale_v1_tailnets_proto_init() }
@@ -1974,7 +2181,7 @@ func file_ionscale_v1_tailnets_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ionscale_v1_tailnets_proto_rawDesc), len(file_ionscale_v1_tailnets_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   37,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

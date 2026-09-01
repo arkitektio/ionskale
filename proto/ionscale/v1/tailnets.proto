@@ -163,3 +163,30 @@ message DisableTailnetLockRequest {
 }
 
 message DisableTailnetLockResponse {}
+
+// NodeLockState is one machine's standing under tailnet lock. A machine whose
+// node key carries no authority signature cannot be reached by locked peers
+// until an existing signing node signs it.
+message NodeLockState {
+  uint64 machine_id = 1;
+  string name = 2;
+  bool signed = 3;
+}
+
+message GetTailnetLockStatusRequest {
+  uint64 tailnet_id = 1;
+}
+
+// GetTailnetLockStatusResponse separates the two things that are easy to
+// conflate: the control plane grants the *capability*, but the key authority
+// itself only exists once a client has run `tailscale lock init`. A tailnet can
+// sit with capability_enabled and no authority indefinitely.
+message GetTailnetLockStatusResponse {
+  bool capability_enabled = 1;
+  bool authority_active = 2;
+  // authority_disabled means an authority existed and was shut down with a
+  // disablement secret, which is not the same as never having had one.
+  bool authority_disabled = 3;
+  string head = 4;
+  repeated NodeLockState nodes = 5;
+}
