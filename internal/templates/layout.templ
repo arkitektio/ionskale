@@ -1,65 +1,78 @@
 package templates
 
+// toneIcon keeps the status glyphs inline: these pages are served standalone,
+// with no asset pipeline to pull an icon set from.
+templ toneIcon(tone string) {
+	if tone == "success" {
+		<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+	} else if tone == "danger" {
+		<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+	} else {
+		<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+	}
+}
+
+templ statusHead(tone string, title string, detail string) {
+	<div class="head">
+		<div class={ "mark mark-" + tone }>
+			@toneIcon(tone)
+		</div>
+		<div>
+			<h1 class="title">{ title }</h1>
+			<p class="subtitle">{ detail }</p>
+		</div>
+	</div>
+}
+
 templ Index(version string, revision string) {
-    <section class="stack stack-center hero">
-        <span class="eyebrow">ionscale</span>
-        <h1 class="title">Control plane online</h1>
-        <p class="subtitle">Self-hosted tailnet coordination with a cleaner authentication surface.</p>
-        <div class="metaGrid">
-            <div class="metaCard">
-                <span class="metaLabel">Version</span>
-                <code>{ version }</code>
-            </div>
-            <div class="metaCard">
-                <span class="metaLabel">Revision</span>
-                <code>{ revision }</code>
-            </div>
-        </div>
-    </section>
+	<section class="stack">
+		@statusHead("info", "Control plane online", "Self-hosted tailnet coordination.")
+		<div class="metaGrid">
+			<div class="metaCard">
+				<span class="metaLabel">Version</span>
+				<code>{ version }</code>
+			</div>
+			<div class="metaCard">
+				<span class="metaLabel">Revision</span>
+				<code>{ revision }</code>
+			</div>
+		</div>
+	</section>
 }
 
 templ Success() {
-    <section class="stack stack-center hero">
-        <span class="eyebrow eyebrow-success">Authorized</span>
-        <h1 class="title">Authorization successful</h1>
-        <p class="subtitle">You can now close this window and return to your device.</p>
-    </section>
+	<section class="stack">
+		@statusHead("success", "Authorization successful", "You can now close this window and return to your device.")
+	</section>
 }
 
 templ NewMachine() {
-    <section class="stack stack-center hero">
-        <span class="eyebrow eyebrow-info">Authenticated</span>
-        <h1 class="title">This machine still needs approval</h1>
-        <p class="subtitle">Authentication succeeded, but this is a <span class="highlight highlight-info">new machine</span> and it still needs approval from your Tailnet admin.</p>
-    </section>
+	<section class="stack">
+		@statusHead("info", "This machine needs approval", "Authentication succeeded, but this is a new machine and a tailnet admin still has to approve it.")
+	</section>
 }
 
 templ Error() {
-    <section class="stack stack-center hero">
-        <span class="eyebrow eyebrow-danger">Error</span>
-        <h1 class="title">Something went wrong</h1>
-        <p class="subtitle">The request could not be completed. Retry the flow or inspect the server logs for more detail.</p>
-    </section>
+	<section class="stack">
+		@statusHead("danger", "Something went wrong", "The request could not be completed. Retry the flow, or check the server logs for detail.")
+	</section>
 }
 
-// denial is the shared shape of every "you signed in, but ..." screen: the
-// sign-in itself worked, so the page leads with that and then explains the
-// specific thing that stopped it, followed by the one action that resolves it.
-templ denial(eyebrow string, title string, detail string, nextStep string) {
-    <section class="stack stack-center hero">
-        <span class="eyebrow eyebrow-danger">{ eyebrow }</span>
-        <h1 class="title">{ title }</h1>
-        <p class="subtitle">{ detail }</p>
-        <div class="panel nextStep">
-            <span class="panelLabel">What to do next</span>
-            <p class="panelText">{ nextStep }</p>
-        </div>
-    </section>
+// denial is the shared shape of every "you signed in, but ..." screen: what
+// stopped it, then the one action that resolves it.
+templ denial(title string, detail string, nextStep string) {
+	<section class="stack">
+		@statusHead("danger", title, detail)
+		<hr class="separator"/>
+		<div>
+			<span class="nextLabel">What to do next</span>
+			<p class="nextText">{ nextStep }</p>
+		</div>
+	</section>
 }
 
 templ Unauthorized() {
     @denial(
-        "Access denied",
         "You are not authorized to use any network",
         "Your sign-in succeeded and your identity is valid, but it does not grant access to any network on this control plane.",
         "Ask an administrator of this control plane to grant your account access to a network.",
@@ -68,7 +81,6 @@ templ Unauthorized() {
 
 templ NoNetworks() {
     @denial(
-        "Access denied",
         "This control plane has no networks yet",
         "Your sign-in succeeded. Access was denied because no network exists on this server at all, so there is nothing yet for your account to join.",
         "An administrator needs to create a network on this control plane. Until one exists, every sign-in will end on this page.",
@@ -77,7 +89,6 @@ templ NoNetworks() {
 
 templ NoNetworkForOrganization() {
     @denial(
-        "Access denied",
         "No network belongs to your organization",
         "Your sign-in succeeded and your identity carries an organization, but no network on this server is bound to it. Networks are scoped to a single organization, so networks belonging to other organizations are never offered.",
         "Ask an administrator to create a network for your organization, or to confirm that your account is in the organization you expect.",
@@ -86,7 +97,6 @@ templ NoNetworkForOrganization() {
 
 templ OrganizationRequired() {
     @denial(
-        "Access denied",
         "Your identity carries no organization",
         "Your sign-in succeeded, but this server scopes every network to an organization and your identity did not include one. Without an organization there is no network you are eligible to join.",
         "Ask an administrator to assign your account to an organization in the identity provider, so the organization claim is present the next time you sign in.",
@@ -95,7 +105,6 @@ templ OrganizationRequired() {
 
 templ NotOnAccessPolicy() {
     @denial(
-        "Access denied",
         "No network's access policy includes your account",
         "Your sign-in succeeded and networks do exist, but each one has an access policy, and none of them matches your account.",
         "Ask an administrator to add your account to the access policy of the network you need.",
@@ -104,7 +113,6 @@ templ NotOnAccessPolicy() {
 
 templ ProviderRejected() {
     @denial(
-        "Sign-in failed",
         "The identity provider refused the sign-in",
         "The request never got as far as this server's access checks: your identity provider rejected it and sent back an error instead of a sign-in. A cancelled login, an expired attempt, or a misconfigured client all look like this.",
         "Try signing in again. If it keeps failing, an administrator can find the provider's exact message in this server's log.",
@@ -113,7 +121,6 @@ templ ProviderRejected() {
 
 templ InvalidAuthKey() {
     @denial(
-        "Invalid auth key",
         "That auth key is not valid",
         "The key you entered was not recognised. Auth keys are single-use or time-limited, so a key that worked before may since have been used or expired.",
         "Check the key for typos, or ask an administrator to issue a fresh auth key.",
@@ -122,7 +129,6 @@ templ InvalidAuthKey() {
 
 templ NotTagOwner() {
     @denial(
-        "Access denied",
         "You are not an owner of the requested tags",
         "Your sign-in succeeded, but this device asked for tags that your account is not listed as an owner of, so it cannot claim them.",
         "Ask an administrator to add your account to the tag owners in the network's access policy, or retry with tags you already own.",
@@ -131,7 +137,6 @@ templ NotTagOwner() {
 
 templ NotMachineOwner() {
     @denial(
-        "Access denied",
         "You are not the owner of this machine",
         "Your sign-in succeeded, but this action can only be approved by the account that owns the machine, and that is not your account.",
         "Sign in as the account that registered this machine, or ask its owner to approve the request.",
@@ -139,51 +144,46 @@ templ NotMachineOwner() {
 }
 
 templ layout(contents templ.Component) {
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        @heading()
-    </head>
-    <body>
-    <main class="page">
-        <div class="ambient ambientOne"></div>
-        <div class="ambient ambientTwo"></div>
-        <div class="wrapper">
-            <div class="brandBar">
-                <div class="brandMark">I</div>
-                <div>
-                    <p class="brandName">ionscale</p>
-                    <p class="brandHint">Authentication gateway</p>
-                </div>
-            </div>
-            <div class="shell">
-                @contents
-            </div>
-        </div>
-    </main>
-    </body>
-    </html>
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		@heading()
+	</head>
+	<body>
+	<main class="page">
+		<div class="wrapper">
+			<p class="brand">ionscale</p>
+			<div class="shell">
+				@contents
+			</div>
+		</div>
+	</main>
+	</body>
+	</html>
 }
 
 templ heading() {
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <style>
-        /* Palette mirrors kontrol's (kontrol/src/index.css): the same OKLCH
-           tokens derived from --brand-hue, the same 0.625rem radius scale, the
-           same neutrals. kontrol switches themes with a .dark class on <html>;
-           these pages are server-rendered with no toggle, so they follow the
-           operating system instead. Light is the :root default, as in kontrol. */
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<style>
+        /* Palette and scale mirror kontrol (kontrol/src/index.css): the same
+           OKLCH tokens derived from --brand-hue, the same 0.625rem radius
+           scale, the same neutrals. kontrol switches themes with a .dark class
+           on <html>; these pages are server-rendered with no toggle, so they
+           follow the operating system instead. Light is the :root default, as
+           in kontrol.
+
+           Kept deliberately plain: kontrol's own surfaces are a flat card with
+           a hairline border and shadow-sm, a muted icon square, a 1.5rem
+           title and small muted body text. No gradients, no ambient wash, no
+           status pills -- the icon and the title carry the state. */
         :root {
             --brand-hue: 267.256;
             --brand-chroma: 0.19;
 
             --radius: 0.625rem;
-            --radius-md: calc(var(--radius) - 2px);
             --radius-lg: var(--radius);
             --radius-xl: calc(var(--radius) + 4px);
-            --radius-2xl: calc(var(--radius) + 8px);
-            --radius-3xl: calc(var(--radius) + 12px);
 
             --background: oklch(0.97 0.004 var(--brand-hue));
             --foreground: oklch(0.21 0.01 var(--brand-hue));
@@ -191,18 +191,13 @@ templ heading() {
             --muted: oklch(0.95 0.006 var(--brand-hue));
             --muted-foreground: oklch(0.55 0.02 var(--brand-hue));
             --border: oklch(0.87 0.008 var(--brand-hue) / 0.5);
-            --input: oklch(0.87 0.008 var(--brand-hue) / 0.5);
             --primary: oklch(0.48 var(--brand-chroma) var(--brand-hue));
             --primary-foreground: oklch(0.98 0.01 var(--brand-hue));
             --ring: oklch(0.55 calc(var(--brand-chroma) * 0.6) var(--brand-hue));
             --destructive: oklch(0.577 0.245 27.325);
             --success: oklch(0.52 0.13 155);
-
-            --brand-logo-light: oklch(0.6 calc(var(--brand-chroma) * 0.9) var(--brand-hue));
-            --brand-logo-mid: oklch(0.52 var(--brand-chroma) var(--brand-hue));
-            --brand-logo-dark: oklch(0.46 var(--brand-chroma) var(--brand-hue));
-
-            --shadow: 0 24px 60px oklch(0.21 0.01 var(--brand-hue) / 0.10);
+            /* kontrol's Card: shadow-sm, not a lifted panel. */
+            --shadow: 0 1px 2px 0 oklch(0.21 0.01 var(--brand-hue) / 0.05);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -216,26 +211,16 @@ templ heading() {
                 --muted: oklch(0.22 0.008 var(--brand-hue));
                 --muted-foreground: oklch(0.71 0.01 var(--brand-hue) / 0.85);
                 --border: oklch(0.55 0.01 var(--brand-hue) / 0.2);
-                --input: oklch(0.55 0.01 var(--brand-hue) / 0.2);
                 --primary: oklch(0.70 var(--brand-chroma) var(--brand-hue));
                 --primary-foreground: oklch(0.16 0.02 var(--brand-hue));
                 --ring: oklch(0.60 calc(var(--brand-chroma) * 0.6) var(--brand-hue));
                 --destructive: oklch(0.704 0.191 22.216);
                 --success: oklch(0.72 0.15 155);
-
-                --brand-logo-light: oklch(0.72 calc(var(--brand-chroma) * 0.9) var(--brand-hue));
-                --brand-logo-mid: oklch(0.64 var(--brand-chroma) var(--brand-hue));
-                --brand-logo-dark: oklch(0.56 var(--brand-chroma) var(--brand-hue));
-
-                --shadow: 0 24px 60px oklch(0 0 0 / 0.5);
+                --shadow: 0 1px 2px 0 oklch(0 0 0 / 0.3);
             }
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html {
             /* Tailwind's default sans stack, which is what kontrol renders in. */
@@ -251,224 +236,134 @@ templ heading() {
         }
 
         .page {
-            position: relative;
             min-height: 100vh;
-            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 24px;
-            overflow: hidden;
         }
 
-        /* Echoes kontrol's brand wash behind the landing surface. */
-        .ambient {
-            position: absolute;
-            border-radius: 999px;
-            filter: blur(90px);
-            opacity: 0.22;
-            pointer-events: none;
-        }
+        .wrapper { width: 100%; max-width: 480px; }
 
-        .ambientOne {
-            top: 4%;
-            left: 6%;
-            width: 320px;
-            height: 320px;
-            background: var(--brand-logo-light);
-        }
-
-        .ambientTwo {
-            right: 8%;
-            bottom: 6%;
-            width: 360px;
-            height: 360px;
-            background: var(--brand-logo-dark);
-        }
-
-        .wrapper {
-            width: 100%;
-            max-width: 560px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .brandBar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            padding: 0 4px;
-        }
-
-        .brandMark {
-            width: 40px;
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-xl);
-            background: linear-gradient(135deg, var(--brand-logo-light), var(--brand-logo-dark));
-            color: var(--primary-foreground);
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            box-shadow: 0 8px 20px oklch(0.48 var(--brand-chroma) var(--brand-hue) / 0.28);
-        }
-
-        .brandName {
-            font-size: 0.95rem;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        }
-
-        .brandHint {
+        .brand {
+            margin: 0 0 10px 2px;
             color: var(--muted-foreground);
-            font-size: 0.82rem;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
 
-        /* kontrol's card: flat surface, hairline border, generous radius. */
+        /* kontrol's Card: rounded-xl, hairline border, shadow-sm, py-6/px-6. */
         .shell {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: var(--radius-3xl);
-            padding: 28px;
+            border-radius: var(--radius-xl);
+            padding: 24px;
             box-shadow: var(--shadow);
         }
 
-        .stack {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
+        /* kontrol stacks card content with gap-6. */
+        .stack { display: flex; flex-direction: column; gap: 24px; }
 
-        .stack-center {
-            text-align: center;
-            align-items: center;
-        }
+        /* kontrol's PageHeader: a muted icon square beside the text. */
+        .head { display: flex; align-items: flex-start; gap: 16px; }
 
-        .hero {
-            gap: 14px;
-        }
-
-        .eyebrow {
+        .mark {
+            flex: 0 0 auto;
+            width: 44px;
+            height: 44px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 26px;
-            padding: 0 10px;
-            border-radius: 999px;
-            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
             background: var(--muted);
             color: var(--muted-foreground);
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
         }
 
-        .eyebrow-success {
-            color: var(--success);
-            border-color: color-mix(in oklch, var(--success) 30%, transparent);
-            background: color-mix(in oklch, var(--success) 10%, transparent);
-        }
+        .mark-danger { color: var(--destructive); }
+        .mark-success { color: var(--success); }
+        .mark-info { color: var(--primary); }
 
-        .eyebrow-info {
-            color: var(--primary);
-            border-color: color-mix(in oklch, var(--primary) 30%, transparent);
-            background: color-mix(in oklch, var(--primary) 10%, transparent);
-        }
-
-        .eyebrow-danger {
-            color: var(--destructive);
-            border-color: color-mix(in oklch, var(--destructive) 30%, transparent);
-            background: color-mix(in oklch, var(--destructive) 10%, transparent);
-        }
+        .icon { width: 22px; height: 22px; }
 
         .title {
-            font-size: clamp(1.55rem, 3.4vw, 1.95rem);
-            line-height: 1.15;
-            font-weight: 600;
-            letter-spacing: -0.02em;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            line-height: 1.2;
             text-wrap: balance;
         }
 
         .subtitle {
+            margin-top: 6px;
             color: var(--muted-foreground);
-            font-size: 0.95rem;
+            font-size: 0.875rem;
             line-height: 1.6;
-            max-width: 46ch;
         }
 
-        .highlight {
+        .separator { border: 0; border-top: 1px solid var(--border); }
+
+        /* kontrol labels its sections in small uppercase muted text. */
+        .nextLabel {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--muted-foreground);
+            font-size: 0.75rem;
             font-weight: 600;
-            color: var(--foreground);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
 
-        .highlight-info {
-            color: var(--primary);
-        }
-
-        .highlight-danger {
-            color: var(--destructive);
-        }
+        .nextText { font-size: 0.875rem; line-height: 1.6; }
 
         .metaGrid {
-            width: 100%;
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
-            margin-top: 8px;
         }
 
         .metaCard {
-            padding: 14px 16px;
-            text-align: left;
-            border-radius: var(--radius-xl);
+            padding: 12px 14px;
+            border-radius: var(--radius-lg);
             border: 1px solid var(--border);
-            background: var(--muted);
         }
 
         .metaLabel {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: var(--muted-foreground);
             font-size: 0.72rem;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
         code {
-            color: var(--foreground);
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             word-break: break-word;
         }
 
-        .sectionHeader {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        /* --- shared with auth.templ / tailnets.templ --- */
 
-        .sectionTitle {
-            font-size: 1.3rem;
-            font-weight: 600;
-            line-height: 1.2;
-            letter-spacing: -0.02em;
-        }
+        .sectionHeader { display: flex; flex-direction: column; gap: 6px; }
+        .sectionTitle { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.015em; }
+        .sectionText { color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.6; }
 
-        .sectionText {
+        .eyebrow {
+            display: inline-block;
             color: var(--muted-foreground);
-            line-height: 1.6;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
 
         .divider {
             position: relative;
             text-align: center;
             color: var(--muted-foreground);
-            font-size: 0.78rem;
-            letter-spacing: 0.06em;
+            font-size: 0.75rem;
             text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         .divider::before {
@@ -480,183 +375,76 @@ templ heading() {
             border-top: 1px solid var(--border);
         }
 
-        .divider span {
-            position: relative;
-            display: inline-block;
-            padding: 0 12px;
-            background: var(--card);
-        }
+        .divider span { position: relative; display: inline-block; padding: 0 10px; background: var(--card); }
 
-        .form {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
+        .form { display: flex; flex-direction: column; gap: 14px; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .label { font-size: 0.875rem; font-weight: 500; }
+        .helper { color: var(--muted-foreground); font-size: 0.82rem; line-height: 1.55; }
 
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .label {
-            color: var(--foreground);
-            font-size: 0.88rem;
-            font-weight: 500;
-        }
-
-        .helper {
-            color: var(--muted-foreground);
-            font-size: 0.88rem;
-            line-height: 1.55;
-        }
-
-        .selectionList {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .selectionList li {
-            list-style: none;
-        }
-
-        .selectionList li button {
-            display: block;
-            width: 100%;
-            text-align: left;
-        }
+        .selectionList { display: flex; flex-direction: column; gap: 8px; }
+        .selectionList li { list-style: none; }
+        .selectionList li button { display: block; width: 100%; text-align: left; }
 
         input {
-            display: block;
             width: 100%;
-            min-height: 40px;
+            min-height: 36px;
             padding: 0 12px;
             font: inherit;
-            font-size: 0.92rem;
-            border: 1px solid var(--input);
+            font-size: 0.875rem;
+            border: 1px solid var(--border);
             border-radius: var(--radius-lg);
             background: var(--background);
             color: var(--foreground);
             outline: none;
-            transition: border-color 120ms ease, box-shadow 120ms ease;
         }
 
-        input::placeholder {
-            color: var(--muted-foreground);
-        }
+        input::placeholder { color: var(--muted-foreground); }
 
         input:focus-visible {
             border-color: var(--ring);
-            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 35%, transparent);
+            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 30%, transparent);
         }
 
         button {
             width: 100%;
-            min-height: 40px;
-            padding: 10px 16px;
+            min-height: 36px;
+            padding: 8px 14px;
             border-radius: var(--radius-lg);
             border: 1px solid var(--border);
-            background: var(--background);
+            background: transparent;
             color: var(--foreground);
             font: inherit;
-            font-size: 0.92rem;
+            font-size: 0.875rem;
             font-weight: 500;
             cursor: pointer;
-            transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+            transition: background 120ms ease;
         }
 
-        button:hover {
-            background: var(--muted);
-        }
+        button:hover { background: var(--muted); }
 
         button:focus-visible {
             outline: none;
-            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 35%, transparent);
+            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 30%, transparent);
         }
 
-        .buttonPrimary {
-            background: var(--primary);
-            border-color: transparent;
-            color: var(--primary-foreground);
-        }
+        .buttonPrimary { background: var(--primary); border-color: transparent; color: var(--primary-foreground); }
+        .buttonPrimary:hover { background: color-mix(in oklch, var(--primary) 90%, var(--foreground)); }
 
-        .buttonPrimary:hover {
-            background: color-mix(in oklch, var(--primary) 90%, var(--foreground));
-        }
+        .buttonRow { display: flex; flex-direction: column; gap: 8px; }
+        .buttonLabel { display: block; font-weight: 500; }
+        .buttonHint { display: block; margin-top: 2px; color: var(--muted-foreground); font-size: 0.8rem; font-weight: 400; }
+        .buttonPrimary .buttonHint { color: color-mix(in oklch, var(--primary-foreground) 78%, transparent); }
 
-        .buttonRow {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .buttonLabel {
-            display: block;
-            font-weight: 500;
-        }
-
-        .buttonHint {
-            display: block;
-            margin-top: 4px;
-            color: var(--muted-foreground);
-            font-size: 0.82rem;
-            font-weight: 400;
-        }
-
-        .buttonPrimary .buttonHint {
-            color: color-mix(in oklch, var(--primary-foreground) 78%, transparent);
-        }
-
-        .panel {
-            padding: 16px 18px;
-            border-radius: var(--radius-xl);
-            border: 1px solid var(--border);
-            background: var(--muted);
-        }
-
-        .panel strong {
-            color: var(--foreground);
-        }
-
-        /* The "what to do next" block on the denial screens. Left-aligned even
-           inside a centred hero: it is an instruction to follow, not a headline. */
-        .nextStep {
-            width: 100%;
-            margin-top: 4px;
-            text-align: left;
-        }
-
-        .panelLabel {
-            display: block;
-            margin-bottom: 6px;
-            color: var(--muted-foreground);
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        .panelText {
-            color: var(--foreground);
-            font-size: 0.92rem;
-            line-height: 1.6;
-        }
+        .panel { padding: 14px 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+        .panel strong { font-weight: 600; }
 
         @media (max-width: 640px) {
-            .page {
-                padding: 16px;
-            }
-
-            .shell {
-                padding: 22px;
-                border-radius: var(--radius-2xl);
-            }
-
-            .metaGrid {
-                grid-template-columns: 1fr;
-            }
+            .page { padding: 16px; }
+            .shell { padding: 20px; }
+            .metaGrid { grid-template-columns: 1fr; }
+            .head { gap: 12px; }
         }
-    </style>
-    <title>ionscale</title>
+	</style>
+	<title>ionscale</title>
 }

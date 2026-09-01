@@ -8,7 +8,9 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Index(version string, revision string) templ.Component {
+// toneIcon keeps the status glyphs inline: these pages are served standalone,
+// with no asset pipeline to pull an icon set from.
+func toneIcon(tone string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,33 +31,167 @@ func Index(version string, revision string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"stack stack-center hero\"><span class=\"eyebrow\">ionscale</span><h1 class=\"title\">Control plane online</h1><p class=\"subtitle\">Self-hosted tailnet coordination with a cleaner authentication surface.</p><div class=\"metaGrid\"><div class=\"metaCard\"><span class=\"metaLabel\">Version</span> <code>")
+		if tone == "success" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<svg class=\"icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"></path></svg>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else if tone == "danger" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<svg class=\"icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"></path><path d=\"M12 9v4\"></path><path d=\"M12 17h.01\"></path></svg>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<svg class=\"icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 16v-4\"></path><path d=\"M12 8h.01\"></path></svg>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		return nil
+	})
+}
+
+func statusHead(tone string, title string, detail string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"head\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(version)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 11, Col: 31}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		var templ_7745c5c3_Var3 = []any{"mark mark-" + tone}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var3...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</code></div><div class=\"metaCard\"><span class=\"metaLabel\">Revision</span> <code>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(revision)
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var3).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 15, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 1, Col: 0}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</code></div></div></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = toneIcon(tone).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><div><h1 class=\"title\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 21, Col: 28}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</h1><p class=\"subtitle\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 22, Col: 31}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</p></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func Index(version string, revision string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var7 == nil {
+			templ_7745c5c3_Var7 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<section class=\"stack\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = statusHead("info", "Control plane online", "Self-hosted tailnet coordination.").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"metaGrid\"><div class=\"metaCard\"><span class=\"metaLabel\">Version</span> <code>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(version)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 33, Col: 19}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</code></div><div class=\"metaCard\"><span class=\"metaLabel\">Revision</span> <code>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(revision)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 37, Col: 20}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</code></div></div></section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -79,12 +215,20 @@ func Success() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
+		templ_7745c5c3_Var10 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var10 == nil {
+			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<section class=\"stack stack-center hero\"><span class=\"eyebrow eyebrow-success\">Authorized</span><h1 class=\"title\">Authorization successful</h1><p class=\"subtitle\">You can now close this window and return to your device.</p></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<section class=\"stack\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = statusHead("success", "Authorization successful", "You can now close this window and return to your device.").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -108,12 +252,20 @@ func NewMachine() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var5 == nil {
-			templ_7745c5c3_Var5 = templ.NopComponent
+		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var11 == nil {
+			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<section class=\"stack stack-center hero\"><span class=\"eyebrow eyebrow-info\">Authenticated</span><h1 class=\"title\">This machine still needs approval</h1><p class=\"subtitle\">Authentication succeeded, but this is a <span class=\"highlight highlight-info\">new machine</span> and it still needs approval from your Tailnet admin.</p></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<section class=\"stack\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = statusHead("info", "This machine needs approval", "Authentication succeeded, but this is a new machine and a tailnet admin still has to approve it.").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -137,12 +289,20 @@ func Error() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var6 == nil {
-			templ_7745c5c3_Var6 = templ.NopComponent
+		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var12 == nil {
+			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<section class=\"stack stack-center hero\"><span class=\"eyebrow eyebrow-danger\">Error</span><h1 class=\"title\">Something went wrong</h1><p class=\"subtitle\">The request could not be completed. Retry the flow or inspect the server logs for more detail.</p></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<section class=\"stack\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = statusHead("danger", "Something went wrong", "The request could not be completed. Retry the flow, or check the server logs for detail.").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -150,10 +310,9 @@ func Error() templ.Component {
 	})
 }
 
-// denial is the shared shape of every "you signed in, but ..." screen: the
-// sign-in itself worked, so the page leads with that and then explains the
-// specific thing that stopped it, followed by the one action that resolves it.
-func denial(eyebrow string, title string, detail string, nextStep string) templ.Component {
+// denial is the shared shape of every "you signed in, but ..." screen: what
+// stopped it, then the one action that resolves it.
+func denial(title string, detail string, nextStep string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -169,64 +328,33 @@ func denial(eyebrow string, title string, detail string, nextStep string) templ.
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var7 == nil {
-			templ_7745c5c3_Var7 = templ.NopComponent
+		templ_7745c5c3_Var13 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var13 == nil {
+			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<section class=\"stack stack-center hero\"><span class=\"eyebrow eyebrow-danger\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<section class=\"stack\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(eyebrow)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 50, Col: 54}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		templ_7745c5c3_Err = statusHead("danger", title, detail).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span><h1 class=\"title\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<hr class=\"separator\"><div><span class=\"nextLabel\">What to do next</span><p class=\"nextText\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+		var templ_7745c5c3_Var14 string
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(nextStep)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 51, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 69, Col: 33}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</h1><p class=\"subtitle\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 52, Col: 36}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p><div class=\"panel nextStep\"><span class=\"panelLabel\">What to do next</span><p class=\"panelText\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(nextStep)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout.templ`, Line: 55, Col: 43}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p></div></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</p></div></section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -250,13 +378,12 @@ func Unauthorized() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var12 == nil {
-			templ_7745c5c3_Var12 = templ.NopComponent
+		templ_7745c5c3_Var15 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var15 == nil {
+			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = denial(
-			"Access denied",
 			"You are not authorized to use any network",
 			"Your sign-in succeeded and your identity is valid, but it does not grant access to any network on this control plane.",
 			"Ask an administrator of this control plane to grant your account access to a network.",
@@ -284,13 +411,12 @@ func NoNetworks() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var13 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var13 == nil {
-			templ_7745c5c3_Var13 = templ.NopComponent
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = denial(
-			"Access denied",
 			"This control plane has no networks yet",
 			"Your sign-in succeeded. Access was denied because no network exists on this server at all, so there is nothing yet for your account to join.",
 			"An administrator needs to create a network on this control plane. Until one exists, every sign-in will end on this page.",
@@ -318,13 +444,12 @@ func NoNetworkForOrganization() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var14 == nil {
-			templ_7745c5c3_Var14 = templ.NopComponent
+		templ_7745c5c3_Var17 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var17 == nil {
+			templ_7745c5c3_Var17 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = denial(
-			"Access denied",
 			"No network belongs to your organization",
 			"Your sign-in succeeded and your identity carries an organization, but no network on this server is bound to it. Networks are scoped to a single organization, so networks belonging to other organizations are never offered.",
 			"Ask an administrator to create a network for your organization, or to confirm that your account is in the organization you expect.",
@@ -352,13 +477,12 @@ func OrganizationRequired() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var15 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var15 == nil {
-			templ_7745c5c3_Var15 = templ.NopComponent
+		templ_7745c5c3_Var18 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var18 == nil {
+			templ_7745c5c3_Var18 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = denial(
-			"Access denied",
 			"Your identity carries no organization",
 			"Your sign-in succeeded, but this server scopes every network to an organization and your identity did not include one. Without an organization there is no network you are eligible to join.",
 			"Ask an administrator to assign your account to an organization in the identity provider, so the organization claim is present the next time you sign in.",
@@ -386,13 +510,12 @@ func NotOnAccessPolicy() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var16 == nil {
-			templ_7745c5c3_Var16 = templ.NopComponent
+		templ_7745c5c3_Var19 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var19 == nil {
+			templ_7745c5c3_Var19 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = denial(
-			"Access denied",
 			"No network's access policy includes your account",
 			"Your sign-in succeeded and networks do exist, but each one has an access policy, and none of them matches your account.",
 			"Ask an administrator to add your account to the access policy of the network you need.",
@@ -420,13 +543,12 @@ func ProviderRejected() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var17 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var17 == nil {
-			templ_7745c5c3_Var17 = templ.NopComponent
+		templ_7745c5c3_Var20 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var20 == nil {
+			templ_7745c5c3_Var20 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = denial(
-			"Sign-in failed",
 			"The identity provider refused the sign-in",
 			"The request never got as far as this server's access checks: your identity provider rejected it and sent back an error instead of a sign-in. A cancelled login, an expired attempt, or a misconfigured client all look like this.",
 			"Try signing in again. If it keeps failing, an administrator can find the provider's exact message in this server's log.",
@@ -454,13 +576,12 @@ func InvalidAuthKey() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var18 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var18 == nil {
-			templ_7745c5c3_Var18 = templ.NopComponent
+		templ_7745c5c3_Var21 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var21 == nil {
+			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = denial(
-			"Invalid auth key",
 			"That auth key is not valid",
 			"The key you entered was not recognised. Auth keys are single-use or time-limited, so a key that worked before may since have been used or expired.",
 			"Check the key for typos, or ask an administrator to issue a fresh auth key.",
@@ -488,13 +609,12 @@ func NotTagOwner() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var19 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var19 == nil {
-			templ_7745c5c3_Var19 = templ.NopComponent
+		templ_7745c5c3_Var22 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var22 == nil {
+			templ_7745c5c3_Var22 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = denial(
-			"Access denied",
 			"You are not an owner of the requested tags",
 			"Your sign-in succeeded, but this device asked for tags that your account is not listed as an owner of, so it cannot claim them.",
 			"Ask an administrator to add your account to the tag owners in the network's access policy, or retry with tags you already own.",
@@ -522,13 +642,12 @@ func NotMachineOwner() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var20 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var20 == nil {
-			templ_7745c5c3_Var20 = templ.NopComponent
+		templ_7745c5c3_Var23 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var23 == nil {
+			templ_7745c5c3_Var23 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = denial(
-			"Access denied",
 			"You are not the owner of this machine",
 			"Your sign-in succeeded, but this action can only be approved by the account that owns the machine, and that is not your account.",
 			"Sign in as the account that registered this machine, or ask its owner to approve the request.",
@@ -556,12 +675,12 @@ func layout(contents templ.Component) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var21 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var21 == nil {
-			templ_7745c5c3_Var21 = templ.NopComponent
+		templ_7745c5c3_Var24 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var24 == nil {
+			templ_7745c5c3_Var24 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<!doctype html><html lang=\"en\"><head>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<!doctype html><html lang=\"en\"><head>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -569,7 +688,7 @@ func layout(contents templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</head><body><main class=\"page\"><div class=\"ambient ambientOne\"></div><div class=\"ambient ambientTwo\"></div><div class=\"wrapper\"><div class=\"brandBar\"><div class=\"brandMark\">I</div><div><p class=\"brandName\">ionscale</p><p class=\"brandHint\">Authentication gateway</p></div></div><div class=\"shell\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</head><body><main class=\"page\"><div class=\"wrapper\"><p class=\"brand\">ionscale</p><div class=\"shell\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -577,7 +696,7 @@ func layout(contents templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div></main></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div></main></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -601,12 +720,12 @@ func heading() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var22 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var22 == nil {
-			templ_7745c5c3_Var22 = templ.NopComponent
+		templ_7745c5c3_Var25 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var25 == nil {
+			templ_7745c5c3_Var25 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>\n        /* Palette mirrors kontrol's (kontrol/src/index.css): the same OKLCH\n           tokens derived from --brand-hue, the same 0.625rem radius scale, the\n           same neutrals. kontrol switches themes with a .dark class on <html>;\n           these pages are server-rendered with no toggle, so they follow the\n           operating system instead. Light is the :root default, as in kontrol. */\n        :root {\n            --brand-hue: 267.256;\n            --brand-chroma: 0.19;\n\n            --radius: 0.625rem;\n            --radius-md: calc(var(--radius) - 2px);\n            --radius-lg: var(--radius);\n            --radius-xl: calc(var(--radius) + 4px);\n            --radius-2xl: calc(var(--radius) + 8px);\n            --radius-3xl: calc(var(--radius) + 12px);\n\n            --background: oklch(0.97 0.004 var(--brand-hue));\n            --foreground: oklch(0.21 0.01 var(--brand-hue));\n            --card: oklch(0.96 0.005 var(--brand-hue));\n            --muted: oklch(0.95 0.006 var(--brand-hue));\n            --muted-foreground: oklch(0.55 0.02 var(--brand-hue));\n            --border: oklch(0.87 0.008 var(--brand-hue) / 0.5);\n            --input: oklch(0.87 0.008 var(--brand-hue) / 0.5);\n            --primary: oklch(0.48 var(--brand-chroma) var(--brand-hue));\n            --primary-foreground: oklch(0.98 0.01 var(--brand-hue));\n            --ring: oklch(0.55 calc(var(--brand-chroma) * 0.6) var(--brand-hue));\n            --destructive: oklch(0.577 0.245 27.325);\n            --success: oklch(0.52 0.13 155);\n\n            --brand-logo-light: oklch(0.6 calc(var(--brand-chroma) * 0.9) var(--brand-hue));\n            --brand-logo-mid: oklch(0.52 var(--brand-chroma) var(--brand-hue));\n            --brand-logo-dark: oklch(0.46 var(--brand-chroma) var(--brand-hue));\n\n            --shadow: 0 24px 60px oklch(0.21 0.01 var(--brand-hue) / 0.10);\n        }\n\n        @media (prefers-color-scheme: dark) {\n            :root {\n                /* kontrol damps chroma by 0.84 on dark surfaces. */\n                --brand-chroma: calc(0.19 * 0.84);\n\n                --background: oklch(0.16 0.008 var(--brand-hue));\n                --foreground: oklch(0.94 0.005 var(--brand-hue));\n                --card: oklch(0.19 0.008 var(--brand-hue));\n                --muted: oklch(0.22 0.008 var(--brand-hue));\n                --muted-foreground: oklch(0.71 0.01 var(--brand-hue) / 0.85);\n                --border: oklch(0.55 0.01 var(--brand-hue) / 0.2);\n                --input: oklch(0.55 0.01 var(--brand-hue) / 0.2);\n                --primary: oklch(0.70 var(--brand-chroma) var(--brand-hue));\n                --primary-foreground: oklch(0.16 0.02 var(--brand-hue));\n                --ring: oklch(0.60 calc(var(--brand-chroma) * 0.6) var(--brand-hue));\n                --destructive: oklch(0.704 0.191 22.216);\n                --success: oklch(0.72 0.15 155);\n\n                --brand-logo-light: oklch(0.72 calc(var(--brand-chroma) * 0.9) var(--brand-hue));\n                --brand-logo-mid: oklch(0.64 var(--brand-chroma) var(--brand-hue));\n                --brand-logo-dark: oklch(0.56 var(--brand-chroma) var(--brand-hue));\n\n                --shadow: 0 24px 60px oklch(0 0 0 / 0.5);\n            }\n        }\n\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n\n        html {\n            /* Tailwind's default sans stack, which is what kontrol renders in. */\n            font-family: ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto,\n                \"Helvetica Neue\", Arial, \"Noto Sans\", sans-serif;\n        }\n\n        body {\n            min-height: 100vh;\n            background: var(--background);\n            color: var(--foreground);\n            -webkit-font-smoothing: antialiased;\n        }\n\n        .page {\n            position: relative;\n            min-height: 100vh;\n            width: 100%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            padding: 24px;\n            overflow: hidden;\n        }\n\n        /* Echoes kontrol's brand wash behind the landing surface. */\n        .ambient {\n            position: absolute;\n            border-radius: 999px;\n            filter: blur(90px);\n            opacity: 0.22;\n            pointer-events: none;\n        }\n\n        .ambientOne {\n            top: 4%;\n            left: 6%;\n            width: 320px;\n            height: 320px;\n            background: var(--brand-logo-light);\n        }\n\n        .ambientTwo {\n            right: 8%;\n            bottom: 6%;\n            width: 360px;\n            height: 360px;\n            background: var(--brand-logo-dark);\n        }\n\n        .wrapper {\n            width: 100%;\n            max-width: 560px;\n            position: relative;\n            z-index: 1;\n        }\n\n        .brandBar {\n            display: flex;\n            align-items: center;\n            gap: 12px;\n            margin-bottom: 16px;\n            padding: 0 4px;\n        }\n\n        .brandMark {\n            width: 40px;\n            height: 40px;\n            display: inline-flex;\n            align-items: center;\n            justify-content: center;\n            border-radius: var(--radius-xl);\n            background: linear-gradient(135deg, var(--brand-logo-light), var(--brand-logo-dark));\n            color: var(--primary-foreground);\n            font-weight: 700;\n            letter-spacing: 0.06em;\n            box-shadow: 0 8px 20px oklch(0.48 var(--brand-chroma) var(--brand-hue) / 0.28);\n        }\n\n        .brandName {\n            font-size: 0.95rem;\n            font-weight: 600;\n            letter-spacing: -0.01em;\n        }\n\n        .brandHint {\n            color: var(--muted-foreground);\n            font-size: 0.82rem;\n        }\n\n        /* kontrol's card: flat surface, hairline border, generous radius. */\n        .shell {\n            background: var(--card);\n            border: 1px solid var(--border);\n            border-radius: var(--radius-3xl);\n            padding: 28px;\n            box-shadow: var(--shadow);\n        }\n\n        .stack {\n            display: flex;\n            flex-direction: column;\n            gap: 18px;\n        }\n\n        .stack-center {\n            text-align: center;\n            align-items: center;\n        }\n\n        .hero {\n            gap: 14px;\n        }\n\n        .eyebrow {\n            display: inline-flex;\n            align-items: center;\n            justify-content: center;\n            min-height: 26px;\n            padding: 0 10px;\n            border-radius: 999px;\n            border: 1px solid var(--border);\n            background: var(--muted);\n            color: var(--muted-foreground);\n            font-size: 0.72rem;\n            font-weight: 600;\n            letter-spacing: 0.06em;\n            text-transform: uppercase;\n        }\n\n        .eyebrow-success {\n            color: var(--success);\n            border-color: color-mix(in oklch, var(--success) 30%, transparent);\n            background: color-mix(in oklch, var(--success) 10%, transparent);\n        }\n\n        .eyebrow-info {\n            color: var(--primary);\n            border-color: color-mix(in oklch, var(--primary) 30%, transparent);\n            background: color-mix(in oklch, var(--primary) 10%, transparent);\n        }\n\n        .eyebrow-danger {\n            color: var(--destructive);\n            border-color: color-mix(in oklch, var(--destructive) 30%, transparent);\n            background: color-mix(in oklch, var(--destructive) 10%, transparent);\n        }\n\n        .title {\n            font-size: clamp(1.55rem, 3.4vw, 1.95rem);\n            line-height: 1.15;\n            font-weight: 600;\n            letter-spacing: -0.02em;\n            text-wrap: balance;\n        }\n\n        .subtitle {\n            color: var(--muted-foreground);\n            font-size: 0.95rem;\n            line-height: 1.6;\n            max-width: 46ch;\n        }\n\n        .highlight {\n            font-weight: 600;\n            color: var(--foreground);\n        }\n\n        .highlight-info {\n            color: var(--primary);\n        }\n\n        .highlight-danger {\n            color: var(--destructive);\n        }\n\n        .metaGrid {\n            width: 100%;\n            display: grid;\n            grid-template-columns: repeat(2, minmax(0, 1fr));\n            gap: 12px;\n            margin-top: 8px;\n        }\n\n        .metaCard {\n            padding: 14px 16px;\n            text-align: left;\n            border-radius: var(--radius-xl);\n            border: 1px solid var(--border);\n            background: var(--muted);\n        }\n\n        .metaLabel {\n            display: block;\n            margin-bottom: 8px;\n            color: var(--muted-foreground);\n            font-size: 0.72rem;\n            letter-spacing: 0.06em;\n            text-transform: uppercase;\n        }\n\n        code {\n            color: var(--foreground);\n            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;\n            font-size: 0.85rem;\n            word-break: break-word;\n        }\n\n        .sectionHeader {\n            display: flex;\n            flex-direction: column;\n            gap: 8px;\n        }\n\n        .sectionTitle {\n            font-size: 1.3rem;\n            font-weight: 600;\n            line-height: 1.2;\n            letter-spacing: -0.02em;\n        }\n\n        .sectionText {\n            color: var(--muted-foreground);\n            line-height: 1.6;\n        }\n\n        .divider {\n            position: relative;\n            text-align: center;\n            color: var(--muted-foreground);\n            font-size: 0.78rem;\n            letter-spacing: 0.06em;\n            text-transform: uppercase;\n        }\n\n        .divider::before {\n            content: \"\";\n            position: absolute;\n            top: 50%;\n            left: 0;\n            right: 0;\n            border-top: 1px solid var(--border);\n        }\n\n        .divider span {\n            position: relative;\n            display: inline-block;\n            padding: 0 12px;\n            background: var(--card);\n        }\n\n        .form {\n            display: flex;\n            flex-direction: column;\n            gap: 14px;\n        }\n\n        .field {\n            display: flex;\n            flex-direction: column;\n            gap: 8px;\n        }\n\n        .label {\n            color: var(--foreground);\n            font-size: 0.88rem;\n            font-weight: 500;\n        }\n\n        .helper {\n            color: var(--muted-foreground);\n            font-size: 0.88rem;\n            line-height: 1.55;\n        }\n\n        .selectionList {\n            display: flex;\n            flex-direction: column;\n            gap: 10px;\n        }\n\n        .selectionList li {\n            list-style: none;\n        }\n\n        .selectionList li button {\n            display: block;\n            width: 100%;\n            text-align: left;\n        }\n\n        input {\n            display: block;\n            width: 100%;\n            min-height: 40px;\n            padding: 0 12px;\n            font: inherit;\n            font-size: 0.92rem;\n            border: 1px solid var(--input);\n            border-radius: var(--radius-lg);\n            background: var(--background);\n            color: var(--foreground);\n            outline: none;\n            transition: border-color 120ms ease, box-shadow 120ms ease;\n        }\n\n        input::placeholder {\n            color: var(--muted-foreground);\n        }\n\n        input:focus-visible {\n            border-color: var(--ring);\n            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 35%, transparent);\n        }\n\n        button {\n            width: 100%;\n            min-height: 40px;\n            padding: 10px 16px;\n            border-radius: var(--radius-lg);\n            border: 1px solid var(--border);\n            background: var(--background);\n            color: var(--foreground);\n            font: inherit;\n            font-size: 0.92rem;\n            font-weight: 500;\n            cursor: pointer;\n            transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;\n        }\n\n        button:hover {\n            background: var(--muted);\n        }\n\n        button:focus-visible {\n            outline: none;\n            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 35%, transparent);\n        }\n\n        .buttonPrimary {\n            background: var(--primary);\n            border-color: transparent;\n            color: var(--primary-foreground);\n        }\n\n        .buttonPrimary:hover {\n            background: color-mix(in oklch, var(--primary) 90%, var(--foreground));\n        }\n\n        .buttonRow {\n            display: flex;\n            flex-direction: column;\n            gap: 10px;\n        }\n\n        .buttonLabel {\n            display: block;\n            font-weight: 500;\n        }\n\n        .buttonHint {\n            display: block;\n            margin-top: 4px;\n            color: var(--muted-foreground);\n            font-size: 0.82rem;\n            font-weight: 400;\n        }\n\n        .buttonPrimary .buttonHint {\n            color: color-mix(in oklch, var(--primary-foreground) 78%, transparent);\n        }\n\n        .panel {\n            padding: 16px 18px;\n            border-radius: var(--radius-xl);\n            border: 1px solid var(--border);\n            background: var(--muted);\n        }\n\n        .panel strong {\n            color: var(--foreground);\n        }\n\n        /* The \"what to do next\" block on the denial screens. Left-aligned even\n           inside a centred hero: it is an instruction to follow, not a headline. */\n        .nextStep {\n            width: 100%;\n            margin-top: 4px;\n            text-align: left;\n        }\n\n        .panelLabel {\n            display: block;\n            margin-bottom: 6px;\n            color: var(--muted-foreground);\n            font-size: 0.72rem;\n            font-weight: 600;\n            letter-spacing: 0.06em;\n            text-transform: uppercase;\n        }\n\n        .panelText {\n            color: var(--foreground);\n            font-size: 0.92rem;\n            line-height: 1.6;\n        }\n\n        @media (max-width: 640px) {\n            .page {\n                padding: 16px;\n            }\n\n            .shell {\n                padding: 22px;\n                border-radius: var(--radius-2xl);\n            }\n\n            .metaGrid {\n                grid-template-columns: 1fr;\n            }\n        }\n    </style><title>ionscale</title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>\n        /* Palette and scale mirror kontrol (kontrol/src/index.css): the same\n           OKLCH tokens derived from --brand-hue, the same 0.625rem radius\n           scale, the same neutrals. kontrol switches themes with a .dark class\n           on <html>; these pages are server-rendered with no toggle, so they\n           follow the operating system instead. Light is the :root default, as\n           in kontrol.\n\n           Kept deliberately plain: kontrol's own surfaces are a flat card with\n           a hairline border and shadow-sm, a muted icon square, a 1.5rem\n           title and small muted body text. No gradients, no ambient wash, no\n           status pills -- the icon and the title carry the state. */\n        :root {\n            --brand-hue: 267.256;\n            --brand-chroma: 0.19;\n\n            --radius: 0.625rem;\n            --radius-lg: var(--radius);\n            --radius-xl: calc(var(--radius) + 4px);\n\n            --background: oklch(0.97 0.004 var(--brand-hue));\n            --foreground: oklch(0.21 0.01 var(--brand-hue));\n            --card: oklch(0.96 0.005 var(--brand-hue));\n            --muted: oklch(0.95 0.006 var(--brand-hue));\n            --muted-foreground: oklch(0.55 0.02 var(--brand-hue));\n            --border: oklch(0.87 0.008 var(--brand-hue) / 0.5);\n            --primary: oklch(0.48 var(--brand-chroma) var(--brand-hue));\n            --primary-foreground: oklch(0.98 0.01 var(--brand-hue));\n            --ring: oklch(0.55 calc(var(--brand-chroma) * 0.6) var(--brand-hue));\n            --destructive: oklch(0.577 0.245 27.325);\n            --success: oklch(0.52 0.13 155);\n            /* kontrol's Card: shadow-sm, not a lifted panel. */\n            --shadow: 0 1px 2px 0 oklch(0.21 0.01 var(--brand-hue) / 0.05);\n        }\n\n        @media (prefers-color-scheme: dark) {\n            :root {\n                /* kontrol damps chroma by 0.84 on dark surfaces. */\n                --brand-chroma: calc(0.19 * 0.84);\n\n                --background: oklch(0.16 0.008 var(--brand-hue));\n                --foreground: oklch(0.94 0.005 var(--brand-hue));\n                --card: oklch(0.19 0.008 var(--brand-hue));\n                --muted: oklch(0.22 0.008 var(--brand-hue));\n                --muted-foreground: oklch(0.71 0.01 var(--brand-hue) / 0.85);\n                --border: oklch(0.55 0.01 var(--brand-hue) / 0.2);\n                --primary: oklch(0.70 var(--brand-chroma) var(--brand-hue));\n                --primary-foreground: oklch(0.16 0.02 var(--brand-hue));\n                --ring: oklch(0.60 calc(var(--brand-chroma) * 0.6) var(--brand-hue));\n                --destructive: oklch(0.704 0.191 22.216);\n                --success: oklch(0.72 0.15 155);\n                --shadow: 0 1px 2px 0 oklch(0 0 0 / 0.3);\n            }\n        }\n\n        * { margin: 0; padding: 0; box-sizing: border-box; }\n\n        html {\n            /* Tailwind's default sans stack, which is what kontrol renders in. */\n            font-family: ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto,\n                \"Helvetica Neue\", Arial, \"Noto Sans\", sans-serif;\n        }\n\n        body {\n            min-height: 100vh;\n            background: var(--background);\n            color: var(--foreground);\n            -webkit-font-smoothing: antialiased;\n        }\n\n        .page {\n            min-height: 100vh;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            padding: 24px;\n        }\n\n        .wrapper { width: 100%; max-width: 480px; }\n\n        .brand {\n            margin: 0 0 10px 2px;\n            color: var(--muted-foreground);\n            font-size: 0.8rem;\n            font-weight: 500;\n        }\n\n        /* kontrol's Card: rounded-xl, hairline border, shadow-sm, py-6/px-6. */\n        .shell {\n            background: var(--card);\n            border: 1px solid var(--border);\n            border-radius: var(--radius-xl);\n            padding: 24px;\n            box-shadow: var(--shadow);\n        }\n\n        /* kontrol stacks card content with gap-6. */\n        .stack { display: flex; flex-direction: column; gap: 24px; }\n\n        /* kontrol's PageHeader: a muted icon square beside the text. */\n        .head { display: flex; align-items: flex-start; gap: 16px; }\n\n        .mark {\n            flex: 0 0 auto;\n            width: 44px;\n            height: 44px;\n            display: inline-flex;\n            align-items: center;\n            justify-content: center;\n            border-radius: var(--radius-lg);\n            background: var(--muted);\n            color: var(--muted-foreground);\n        }\n\n        .mark-danger { color: var(--destructive); }\n        .mark-success { color: var(--success); }\n        .mark-info { color: var(--primary); }\n\n        .icon { width: 22px; height: 22px; }\n\n        .title {\n            font-size: 1.5rem;\n            font-weight: 700;\n            letter-spacing: -0.025em;\n            line-height: 1.2;\n            text-wrap: balance;\n        }\n\n        .subtitle {\n            margin-top: 6px;\n            color: var(--muted-foreground);\n            font-size: 0.875rem;\n            line-height: 1.6;\n        }\n\n        .separator { border: 0; border-top: 1px solid var(--border); }\n\n        /* kontrol labels its sections in small uppercase muted text. */\n        .nextLabel {\n            display: block;\n            margin-bottom: 6px;\n            color: var(--muted-foreground);\n            font-size: 0.75rem;\n            font-weight: 600;\n            letter-spacing: 0.04em;\n            text-transform: uppercase;\n        }\n\n        .nextText { font-size: 0.875rem; line-height: 1.6; }\n\n        .metaGrid {\n            display: grid;\n            grid-template-columns: repeat(2, minmax(0, 1fr));\n            gap: 12px;\n        }\n\n        .metaCard {\n            padding: 12px 14px;\n            border-radius: var(--radius-lg);\n            border: 1px solid var(--border);\n        }\n\n        .metaLabel {\n            display: block;\n            margin-bottom: 6px;\n            color: var(--muted-foreground);\n            font-size: 0.72rem;\n            letter-spacing: 0.04em;\n            text-transform: uppercase;\n        }\n\n        code {\n            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;\n            font-size: 0.82rem;\n            word-break: break-word;\n        }\n\n        /* --- shared with auth.templ / tailnets.templ --- */\n\n        .sectionHeader { display: flex; flex-direction: column; gap: 6px; }\n        .sectionTitle { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.015em; }\n        .sectionText { color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.6; }\n\n        .eyebrow {\n            display: inline-block;\n            color: var(--muted-foreground);\n            font-size: 0.75rem;\n            font-weight: 600;\n            letter-spacing: 0.04em;\n            text-transform: uppercase;\n        }\n\n        .divider {\n            position: relative;\n            text-align: center;\n            color: var(--muted-foreground);\n            font-size: 0.75rem;\n            text-transform: uppercase;\n            letter-spacing: 0.04em;\n        }\n\n        .divider::before {\n            content: \"\";\n            position: absolute;\n            top: 50%;\n            left: 0;\n            right: 0;\n            border-top: 1px solid var(--border);\n        }\n\n        .divider span { position: relative; display: inline-block; padding: 0 10px; background: var(--card); }\n\n        .form { display: flex; flex-direction: column; gap: 14px; }\n        .field { display: flex; flex-direction: column; gap: 6px; }\n        .label { font-size: 0.875rem; font-weight: 500; }\n        .helper { color: var(--muted-foreground); font-size: 0.82rem; line-height: 1.55; }\n\n        .selectionList { display: flex; flex-direction: column; gap: 8px; }\n        .selectionList li { list-style: none; }\n        .selectionList li button { display: block; width: 100%; text-align: left; }\n\n        input {\n            width: 100%;\n            min-height: 36px;\n            padding: 0 12px;\n            font: inherit;\n            font-size: 0.875rem;\n            border: 1px solid var(--border);\n            border-radius: var(--radius-lg);\n            background: var(--background);\n            color: var(--foreground);\n            outline: none;\n        }\n\n        input::placeholder { color: var(--muted-foreground); }\n\n        input:focus-visible {\n            border-color: var(--ring);\n            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 30%, transparent);\n        }\n\n        button {\n            width: 100%;\n            min-height: 36px;\n            padding: 8px 14px;\n            border-radius: var(--radius-lg);\n            border: 1px solid var(--border);\n            background: transparent;\n            color: var(--foreground);\n            font: inherit;\n            font-size: 0.875rem;\n            font-weight: 500;\n            cursor: pointer;\n            transition: background 120ms ease;\n        }\n\n        button:hover { background: var(--muted); }\n\n        button:focus-visible {\n            outline: none;\n            box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 30%, transparent);\n        }\n\n        .buttonPrimary { background: var(--primary); border-color: transparent; color: var(--primary-foreground); }\n        .buttonPrimary:hover { background: color-mix(in oklch, var(--primary) 90%, var(--foreground)); }\n\n        .buttonRow { display: flex; flex-direction: column; gap: 8px; }\n        .buttonLabel { display: block; font-weight: 500; }\n        .buttonHint { display: block; margin-top: 2px; color: var(--muted-foreground); font-size: 0.8rem; font-weight: 400; }\n        .buttonPrimary .buttonHint { color: color-mix(in oklch, var(--primary-foreground) 78%, transparent); }\n\n        .panel { padding: 14px 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); }\n        .panel strong { font-weight: 600; }\n\n        @media (max-width: 640px) {\n            .page { padding: 16px; }\n            .shell { padding: 20px; }\n            .metaGrid { grid-template-columns: 1fr; }\n            .head { gap: 12px; }\n        }\n\t</style><title>ionscale</title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
