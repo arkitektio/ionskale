@@ -46,12 +46,14 @@ func setDNSConfigCommand() *cobra.Command {
 	var httpsCerts bool
 	var overrideLocalDNS bool
 	var searchDomains []string
+	var extraRecords []string
 
 	command.Flags().StringSliceVarP(&nameservers, "nameserver", "", []string{}, "Machines on your network will use these nameservers to resolve DNS queries.")
 	command.Flags().BoolVarP(&magicDNS, "magic-dns", "", false, "Enable MagicDNS for the specified Tailnet")
 	command.Flags().BoolVarP(&httpsCerts, "https-certs", "", false, "Enable HTTPS Certificates for the specified Tailnet")
 	command.Flags().BoolVarP(&overrideLocalDNS, "override-local-dns", "", false, "When enabled, connected clients ignore local DNS settings and always use the nameservers specified for this Tailnet")
 	command.Flags().StringSliceVarP(&searchDomains, "search-domain", "", []string{}, "Custom DNS search domains.")
+	command.Flags().StringArrayVarP(&extraRecords, "extra-record", "", []string{}, "Static DNS record answered by MagicDNS, as [TYPE:]name=ip (e.g. svc.example.com=100.64.0.5 or AAAA:svc.example.com=fd7a::1). Repeatable.")
 
 	command.RunE = func(cmd *cobra.Command, args []string) error {
 		var globalNameservers []string
@@ -71,6 +73,11 @@ func setDNSConfigCommand() *cobra.Command {
 			}
 		}
 
+		records, err := parseExtraRecords(extraRecords)
+		if err != nil {
+			return err
+		}
+
 		req := api.SetDNSConfigRequest{
 			TailnetId: tc.TailnetID(),
 			Config: &api.DNSConfig{
@@ -80,6 +87,7 @@ func setDNSConfigCommand() *cobra.Command {
 				Routes:           routes,
 				HttpsCerts:       httpsCerts,
 				SearchDomains:    searchDomains,
+				ExtraRecords:     records,
 			},
 		}
 		resp, err := tc.Client().SetDNSConfig(cmd.Context(), connect.NewRequest(&req))
@@ -101,6 +109,27 @@ func setDNSConfigCommand() *cobra.Command {
 	}
 
 	return command
+}
+
+// parseExtraRecords turns "[TYPE:]name=ip" flags into records. The type goes
+// in front because IPv6 values contain colons themselves.
+func parseExtraRecords(values []string) ([]*api.DNSRecord, error) {
+	var records []*api.DNSRecord
+	for _, v := range values {
+		name, ip, ok := strings.Cut(v, "=")
+		if !ok || name == "" || ip == "" {
+			return nil, fmt.Errorf("invalid extra record %q, expected [TYPE:]name=ip", v)
+		}
+		record := &api.DNSRecord{Value: ip}
+		if typ, n, hasType := strings.Cut(name, ":"); hasType {
+			record.Type = strings.ToUpper(typ)
+			record.Name = n
+		} else {
+			record.Name = name
+		}
+		records = append(records, record)
+	}
+	return records, nil
 }
 
 func printDnsConfig(config *api.DNSConfig) {
@@ -140,5 +169,17 @@ func printDnsConfig(config *api.DNSConfig) {
 		} else {
 			fmt.Fprintf(w, "%s\t%s\t%s\n", "", t, "")
 		}
+	}
+
+	for i, r := range config.ExtraRecords {
+		label := ""
+		if i == 0 {
+			label = "Extra Records"
+		}
+		typ := r.Type
+		if typ == "" {
+			typ = "A/AAAA"
+		}
+		fmt.Fprintf(w, "%s\t%s\t%s (%s)\n", label, r.Name, r.Value, typ)
 	}
 }

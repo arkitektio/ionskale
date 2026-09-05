@@ -30,8 +30,20 @@ message DNSConfig {
   string magic_dns_suffix = 5;
   bool https_certs = 6;
   repeated string search_domains = 7;
+  // static records answered by MagicDNS in addition to machine names, e.g.
+  // to give a service a stable name inside the tailnet
+  repeated DNSRecord extra_records = 8;
 }
 
 message Routes {
   repeated string routes = 1;
+}
+
+message DNSRecord {
+  // fully qualified name of the record
+  string name = 1;
+  // record type: A or AAAA; when empty it is derived from the value
+  string type = 2;
+  // the IP address the name resolves to
+  string value = 3;
 }

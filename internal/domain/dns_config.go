@@ -16,6 +16,16 @@ type DNSConfig struct {
 	Nameservers       []string            `json:"nameservers"`
 	Routes            map[string][]string `json:"routes"`
 	SearchDomains     []string            `json:"search_domains"`
+	// ExtraRecords are static names answered by MagicDNS next to the machine
+	// names; stored in the same JSON column, so older rows simply lack them.
+	ExtraRecords []DNSRecord `json:"extra_records,omitempty"`
+}
+
+// DNSRecord is a static A/AAAA record served by MagicDNS.
+type DNSRecord struct {
+	Name  string `json:"name"`
+	Type  string `json:"type,omitempty"`
+	Value string `json:"value"`
 }
 
 func (i *DNSConfig) Equal(x *DNSConfig) bool {
@@ -31,7 +41,8 @@ func (i *DNSConfig) Equal(x *DNSConfig) bool {
 		i.OverrideLocalDNS == x.OverrideLocalDNS &&
 		reflect.DeepEqual(i.Nameservers, x.Nameservers) &&
 		reflect.DeepEqual(i.Routes, x.Routes) &&
-		reflect.DeepEqual(i.SearchDomains, x.SearchDomains)
+		reflect.DeepEqual(i.SearchDomains, x.SearchDomains) &&
+		reflect.DeepEqual(i.ExtraRecords, x.ExtraRecords)
 }
 
 func (i *DNSConfig) Scan(destination interface{}) error {

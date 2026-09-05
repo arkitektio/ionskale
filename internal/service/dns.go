@@ -7,6 +7,9 @@ import (
 	"github.com/jsiebens/ionscale/internal/config"
 	"github.com/jsiebens/ionscale/internal/domain"
 	api "github.com/jsiebens/ionscale/pkg/gen/ionscale/v1"
+	"net/netip"
+	"strings"
+	"tailscale.com/util/dnsname"
 )
 
 func (s *Service) GetDNSConfig(ctx context.Context, req *connect.Request[api.GetDNSConfigRequest]) (*connect.Response[api.GetDNSConfigResponse], error) {
@@ -37,6 +40,13 @@ func (s *Service) SetDNSConfig(ctx context.Context, req *connect.Request[api.Set
 	}
 
 	dnsConfig := req.Msg.Config
+	if dnsConfig == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("config is required"))
+	}
+
+	if err := validateDNSConfig(dnsConfig); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
 
 	if dnsConfig.HttpsCerts && !dnsConfig.MagicDns {
 		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("MagicDNS must be enabled when enabling HTTPS Certs"))
@@ -71,6 +81,70 @@ func (s *Service) SetDNSConfig(ctx context.Context, req *connect.Request[api.Set
 	return connect.NewResponse(&api.SetDNSConfigResponse{Config: domainDNSConfigToApiDNSConfig(tailnet)}), nil
 }
 
+// validateDNSConfig checks the parts of a DNS config that would otherwise be
+// pushed verbatim to every client: extra records need a valid FQDN, a
+// supported type and an address matching that type. A nil config is valid
+// (callers fall back to the defaults).
+func validateDNSConfig(dnsConfig *api.DNSConfig) error {
+	if dnsConfig == nil {
+		return nil
+	}
+	for i, r := range dnsConfig.ExtraRecords {
+		if r == nil {
+			return fmt.Errorf("extra_records[%d]: record is empty", i)
+		}
+		if strings.TrimSpace(r.Name) == "" {
+			return fmt.Errorf("extra_records[%d]: name is required", i)
+		}
+		if err := dnsname.ValidHostname(r.Name); err != nil {
+			return fmt.Errorf("extra_records[%d]: invalid name %q: %w", i, r.Name, err)
+		}
+		addr, err := netip.ParseAddr(r.Value)
+		if err != nil {
+			return fmt.Errorf("extra_records[%d] (%s): value %q is not an IP address", i, r.Name, r.Value)
+		}
+		switch strings.ToUpper(r.Type) {
+		case "":
+		case "A":
+			if !addr.Is4() {
+				return fmt.Errorf("extra_records[%d] (%s): an A record needs an IPv4 address", i, r.Name)
+			}
+		case "AAAA":
+			if !addr.Is6() {
+				return fmt.Errorf("extra_records[%d] (%s): an AAAA record needs an IPv6 address", i, r.Name)
+			}
+		default:
+			return fmt.Errorf("extra_records[%d] (%s): unsupported type %q (A or AAAA)", i, r.Name, r.Type)
+		}
+	}
+	return nil
+}
+
+func apiRecordsToDomainRecords(records []*api.DNSRecord) []domain.DNSRecord {
+	if len(records) == 0 {
+		return nil
+	}
+	result := make([]domain.DNSRecord, 0, len(records))
+	for _, r := range records {
+		if r == nil {
+			continue
+		}
+		result = append(result, domain.DNSRecord{Name: r.Name, Type: strings.ToUpper(r.Type), Value: r.Value})
+	}
+	return result
+}
+
+func domainRecordsToApiRecords(records []domain.DNSRecord) []*api.DNSRecord {
+	if len(records) == 0 {
+		return nil
+	}
+	result := make([]*api.DNSRecord, 0, len(records))
+	for _, r := range records {
+		result = append(result, &api.DNSRecord{Name: r.Name, Type: r.Type, Value: r.Value})
+	}
+	return result
+}
+
 func domainRoutesToApiRoutes(routes map[string][]string) map[string]*api.Routes {
 	var result = map[string]*api.Routes{}
 	for k, v := range routes {
@@ -99,6 +173,7 @@ func apiDNSConfigToDomainDNSConfig(dnsConfig *api.DNSConfig) domain.DNSConfig {
 		Nameservers:       dnsConfig.Nameservers,
 		Routes:            apiRoutesToDomainRoutes(dnsConfig.Routes),
 		SearchDomains:     dnsConfig.SearchDomains,
+		ExtraRecords:      apiRecordsToDomainRecords(dnsConfig.ExtraRecords),
 	}
 }
 
@@ -113,5 +188,6 @@ func domainDNSConfigToApiDNSConfig(tailnet *domain.Tailnet) *api.DNSConfig {
 		Nameservers:      dnsConfig.Nameservers,
 		Routes:           domainRoutesToApiRoutes(dnsConfig.Routes),
 		SearchDomains:    dnsConfig.SearchDomains,
+		ExtraRecords:     domainRecordsToApiRecords(dnsConfig.ExtraRecords),
 	}
 }

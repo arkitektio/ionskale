@@ -8,6 +8,8 @@ message User {
   uint64 id = 1;
   string name = 2;
   string role = 3;
+  // the account's external id (the OIDC subject); empty for service users
+  string external_id = 4;
 }
 
 message ListUsersRequest {

@@ -51,6 +51,9 @@ const (
 	// IonscaleServiceGetTailnetProcedure is the fully-qualified name of the IonscaleService's
 	// GetTailnet RPC.
 	IonscaleServiceGetTailnetProcedure = "/ionscale.v1.IonscaleService/GetTailnet"
+	// IonscaleServiceGetTailnetByOrganizationProcedure is the fully-qualified name of the
+	// IonscaleService's GetTailnetByOrganization RPC.
+	IonscaleServiceGetTailnetByOrganizationProcedure = "/ionscale.v1.IonscaleService/GetTailnetByOrganization"
 	// IonscaleServiceListTailnetsProcedure is the fully-qualified name of the IonscaleService's
 	// ListTailnets RPC.
 	IonscaleServiceListTailnetsProcedure = "/ionscale.v1.IonscaleService/ListTailnets"
@@ -184,6 +187,7 @@ type IonscaleServiceClient interface {
 	CreateTailnet(context.Context, *connect_go.Request[v1.CreateTailnetRequest]) (*connect_go.Response[v1.CreateTailnetResponse], error)
 	UpdateTailnet(context.Context, *connect_go.Request[v1.UpdateTailnetRequest]) (*connect_go.Response[v1.UpdateTailnetResponse], error)
 	GetTailnet(context.Context, *connect_go.Request[v1.GetTailnetRequest]) (*connect_go.Response[v1.GetTailnetResponse], error)
+	GetTailnetByOrganization(context.Context, *connect_go.Request[v1.GetTailnetByOrganizationRequest]) (*connect_go.Response[v1.GetTailnetByOrganizationResponse], error)
 	ListTailnets(context.Context, *connect_go.Request[v1.ListTailnetsRequest]) (*connect_go.Response[v1.ListTailnetsResponse], error)
 	DeleteTailnet(context.Context, *connect_go.Request[v1.DeleteTailnetRequest]) (*connect_go.Response[v1.DeleteTailnetResponse], error)
 	GetDERPMap(context.Context, *connect_go.Request[v1.GetDERPMapRequest]) (*connect_go.Response[v1.GetDERPMapResponse], error)
@@ -265,6 +269,11 @@ func NewIonscaleServiceClient(httpClient connect_go.HTTPClient, baseURL string, 
 		getTailnet: connect_go.NewClient[v1.GetTailnetRequest, v1.GetTailnetResponse](
 			httpClient,
 			baseURL+IonscaleServiceGetTailnetProcedure,
+			opts...,
+		),
+		getTailnetByOrganization: connect_go.NewClient[v1.GetTailnetByOrganizationRequest, v1.GetTailnetByOrganizationResponse](
+			httpClient,
+			baseURL+IonscaleServiceGetTailnetByOrganizationProcedure,
 			opts...,
 		),
 		listTailnets: connect_go.NewClient[v1.ListTailnetsRequest, v1.ListTailnetsResponse](
@@ -483,6 +492,7 @@ type ionscaleServiceClient struct {
 	createTailnet               *connect_go.Client[v1.CreateTailnetRequest, v1.CreateTailnetResponse]
 	updateTailnet               *connect_go.Client[v1.UpdateTailnetRequest, v1.UpdateTailnetResponse]
 	getTailnet                  *connect_go.Client[v1.GetTailnetRequest, v1.GetTailnetResponse]
+	getTailnetByOrganization    *connect_go.Client[v1.GetTailnetByOrganizationRequest, v1.GetTailnetByOrganizationResponse]
 	listTailnets                *connect_go.Client[v1.ListTailnetsRequest, v1.ListTailnetsResponse]
 	deleteTailnet               *connect_go.Client[v1.DeleteTailnetRequest, v1.DeleteTailnetResponse]
 	getDERPMap                  *connect_go.Client[v1.GetDERPMapRequest, v1.GetDERPMapResponse]
@@ -554,6 +564,11 @@ func (c *ionscaleServiceClient) UpdateTailnet(ctx context.Context, req *connect_
 // GetTailnet calls ionscale.v1.IonscaleService.GetTailnet.
 func (c *ionscaleServiceClient) GetTailnet(ctx context.Context, req *connect_go.Request[v1.GetTailnetRequest]) (*connect_go.Response[v1.GetTailnetResponse], error) {
 	return c.getTailnet.CallUnary(ctx, req)
+}
+
+// GetTailnetByOrganization calls ionscale.v1.IonscaleService.GetTailnetByOrganization.
+func (c *ionscaleServiceClient) GetTailnetByOrganization(ctx context.Context, req *connect_go.Request[v1.GetTailnetByOrganizationRequest]) (*connect_go.Response[v1.GetTailnetByOrganizationResponse], error) {
+	return c.getTailnetByOrganization.CallUnary(ctx, req)
 }
 
 // ListTailnets calls ionscale.v1.IonscaleService.ListTailnets.
@@ -769,6 +784,7 @@ type IonscaleServiceHandler interface {
 	CreateTailnet(context.Context, *connect_go.Request[v1.CreateTailnetRequest]) (*connect_go.Response[v1.CreateTailnetResponse], error)
 	UpdateTailnet(context.Context, *connect_go.Request[v1.UpdateTailnetRequest]) (*connect_go.Response[v1.UpdateTailnetResponse], error)
 	GetTailnet(context.Context, *connect_go.Request[v1.GetTailnetRequest]) (*connect_go.Response[v1.GetTailnetResponse], error)
+	GetTailnetByOrganization(context.Context, *connect_go.Request[v1.GetTailnetByOrganizationRequest]) (*connect_go.Response[v1.GetTailnetByOrganizationResponse], error)
 	ListTailnets(context.Context, *connect_go.Request[v1.ListTailnetsRequest]) (*connect_go.Response[v1.ListTailnetsResponse], error)
 	DeleteTailnet(context.Context, *connect_go.Request[v1.DeleteTailnetRequest]) (*connect_go.Response[v1.DeleteTailnetResponse], error)
 	GetDERPMap(context.Context, *connect_go.Request[v1.GetDERPMapRequest]) (*connect_go.Response[v1.GetDERPMapResponse], error)
@@ -846,6 +862,11 @@ func NewIonscaleServiceHandler(svc IonscaleServiceHandler, opts ...connect_go.Ha
 	ionscaleServiceGetTailnetHandler := connect_go.NewUnaryHandler(
 		IonscaleServiceGetTailnetProcedure,
 		svc.GetTailnet,
+		opts...,
+	)
+	ionscaleServiceGetTailnetByOrganizationHandler := connect_go.NewUnaryHandler(
+		IonscaleServiceGetTailnetByOrganizationProcedure,
+		svc.GetTailnetByOrganization,
 		opts...,
 	)
 	ionscaleServiceListTailnetsHandler := connect_go.NewUnaryHandler(
@@ -1067,6 +1088,8 @@ func NewIonscaleServiceHandler(svc IonscaleServiceHandler, opts ...connect_go.Ha
 			ionscaleServiceUpdateTailnetHandler.ServeHTTP(w, r)
 		case IonscaleServiceGetTailnetProcedure:
 			ionscaleServiceGetTailnetHandler.ServeHTTP(w, r)
+		case IonscaleServiceGetTailnetByOrganizationProcedure:
+			ionscaleServiceGetTailnetByOrganizationHandler.ServeHTTP(w, r)
 		case IonscaleServiceListTailnetsProcedure:
 			ionscaleServiceListTailnetsHandler.ServeHTTP(w, r)
 		case IonscaleServiceDeleteTailnetProcedure:
@@ -1180,6 +1203,10 @@ func (UnimplementedIonscaleServiceHandler) UpdateTailnet(context.Context, *conne
 
 func (UnimplementedIonscaleServiceHandler) GetTailnet(context.Context, *connect_go.Request[v1.GetTailnetRequest]) (*connect_go.Response[v1.GetTailnetResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("ionscale.v1.IonscaleService.GetTailnet is not implemented"))
+}
+
+func (UnimplementedIonscaleServiceHandler) GetTailnetByOrganization(context.Context, *connect_go.Request[v1.GetTailnetByOrganizationRequest]) (*connect_go.Response[v1.GetTailnetByOrganizationResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("ionscale.v1.IonscaleService.GetTailnetByOrganization is not implemented"))
 }
 
 func (UnimplementedIonscaleServiceHandler) ListTailnets(context.Context, *connect_go.Request[v1.ListTailnetsRequest]) (*connect_go.Response[v1.ListTailnetsResponse], error) {

@@ -226,7 +226,7 @@ For more details about configuring OIDC authentication, see [OIDC Configuration]
 
 Service tokens are presented as `Authorization: Bearer svc_…` on the connect API (`POST /ionscale.v1.IonscaleService/<Method>` with a JSON body), so any HTTP client can drive the API without the CLI. Generate one with e.g. `echo "svc_$(openssl rand -hex 24)"`. The CLI picks a token up from the `IONSCALE_TOKEN` environment variable.
 
-Tailnets are bound to an organization at creation time with `ionscale tailnets create --name <name> --org <organization-id>` (or the equivalent `CreateTailnet` API call with the `organization` field, e.g. issued by the identity-provider backend when it creates an organization); at most one tailnet may exist per organization (`CreateTailnet` returns `AlreadyExists` otherwise, making provisioning idempotent). `ionscale tailnets list --org <id>` filters by organization. The organization claim and roles are also available in IAM policy filter expressions as `org` and `roles` (e.g. `org == 42` or `roles contains "admin"`).
+Tailnets are bound to an organization at creation time with `ionscale tailnets create --name <name> --org <organization-id>` (or the equivalent `CreateTailnet` API call with the `organization` field, e.g. issued by the identity-provider backend when it creates an organization); at most one tailnet may exist per organization (`CreateTailnet` returns `AlreadyExists` otherwise, making provisioning idempotent). `ionscale tailnets list --org <id>` filters by organization and `GetTailnetByOrganization` returns the one tailnet of an organization (`NotFound` when there is none), so an identity provider can provision idempotently: get, create, and on `AlreadyExists` get again. `UpdateTailnet` is a partial update — feature flags are only applied when set — and a system admin can rename a tailnet through its `name` field (every machine's MagicDNS name follows; `ListUsers` reports each user's `external_id` so the provider can reconcile membership). The organization claim and roles are also available in IAM policy filter expressions as `org` and `roles` (e.g. `org == 42` or `roles contains "admin"`).
 
 When the identity provider revokes a membership, revoke the account's access immediately with `ionscale users revoke-account --external-id <oidc-subject> [--org <id>]` (RPC `RevokeAccount`): it deletes the account's users, machines, api keys and auth keys in the affected tailnets and pushes a netmap update, instead of waiting for machine keys to expire. The call is idempotent — an unknown or already revoked account is a successful no-op — so it is safe to retry and to issue on every membership removal.
 
@@ -288,6 +288,8 @@ dns:
 ```
 
 For more details about configuring DNS providers, see [DNS Providers](./dns-providers.md).
+
+Per tailnet, `ionscale set-dns` (RPC `SetDNSConfig`) configures MagicDNS, nameservers, split-DNS routes, search domains and static **extra records** — A/AAAA names answered by MagicDNS next to the machine names, e.g. to give a service a stable name inside the tailnet: `ionscale set-dns --magic-dns --extra-record svc.example.com=100.64.0.5 --extra-record AAAA:v6.example.com=fd7a::1`. Record names must be valid host names and the address must match the type (the type may be omitted).
 
 ### DERP Configuration
 

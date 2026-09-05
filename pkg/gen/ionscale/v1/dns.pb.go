@@ -222,8 +222,11 @@ type DNSConfig struct {
 	MagicDnsSuffix   string                 `protobuf:"bytes,5,opt,name=magic_dns_suffix,json=magicDnsSuffix,proto3" json:"magic_dns_suffix,omitempty"`
 	HttpsCerts       bool                   `protobuf:"varint,6,opt,name=https_certs,json=httpsCerts,proto3" json:"https_certs,omitempty"`
 	SearchDomains    []string               `protobuf:"bytes,7,rep,name=search_domains,json=searchDomains,proto3" json:"search_domains,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// static records answered by MagicDNS in addition to machine names, e.g.
+	// to give a service a stable name inside the tailnet
+	ExtraRecords  []*DNSRecord `protobuf:"bytes,8,rep,name=extra_records,json=extraRecords,proto3" json:"extra_records,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DNSConfig) Reset() {
@@ -305,6 +308,13 @@ func (x *DNSConfig) GetSearchDomains() []string {
 	return nil
 }
 
+func (x *DNSConfig) GetExtraRecords() []*DNSRecord {
+	if x != nil {
+		return x.ExtraRecords
+	}
+	return nil
+}
+
 type Routes struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Routes        []string               `protobuf:"bytes,1,rep,name=routes,proto3" json:"routes,omitempty"`
@@ -349,6 +359,69 @@ func (x *Routes) GetRoutes() []string {
 	return nil
 }
 
+type DNSRecord struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// fully qualified name of the record
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// record type: A or AAAA; when empty it is derived from the value
+	Type string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	// the IP address the name resolves to
+	Value         string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DNSRecord) Reset() {
+	*x = DNSRecord{}
+	mi := &file_ionscale_v1_dns_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DNSRecord) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DNSRecord) ProtoMessage() {}
+
+func (x *DNSRecord) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_dns_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DNSRecord.ProtoReflect.Descriptor instead.
+func (*DNSRecord) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_dns_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *DNSRecord) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DNSRecord) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *DNSRecord) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 var File_ionscale_v1_dns_proto protoreflect.FileDescriptor
 
 const file_ionscale_v1_dns_proto_rawDesc = "" +
@@ -365,7 +438,7 @@ const file_ionscale_v1_dns_proto_rawDesc = "" +
 	"\x06config\x18\x02 \x01(\v2\x16.ionscale.v1.DNSConfigR\x06config\"`\n" +
 	"\x14SetDNSConfigResponse\x12.\n" +
 	"\x06config\x18\x01 \x01(\v2\x16.ionscale.v1.DNSConfigR\x06config\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xf6\x02\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xb3\x03\n" +
 	"\tDNSConfig\x12\x1b\n" +
 	"\tmagic_dns\x18\x01 \x01(\bR\bmagicDns\x12,\n" +
 	"\x12override_local_dns\x18\x02 \x01(\bR\x10overrideLocalDns\x12 \n" +
@@ -374,12 +447,17 @@ const file_ionscale_v1_dns_proto_rawDesc = "" +
 	"\x10magic_dns_suffix\x18\x05 \x01(\tR\x0emagicDnsSuffix\x12\x1f\n" +
 	"\vhttps_certs\x18\x06 \x01(\bR\n" +
 	"httpsCerts\x12%\n" +
-	"\x0esearch_domains\x18\a \x03(\tR\rsearchDomains\x1aN\n" +
+	"\x0esearch_domains\x18\a \x03(\tR\rsearchDomains\x12;\n" +
+	"\rextra_records\x18\b \x03(\v2\x16.ionscale.v1.DNSRecordR\fextraRecords\x1aN\n" +
 	"\vRoutesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12)\n" +
 	"\x05value\x18\x02 \x01(\v2\x13.ionscale.v1.RoutesR\x05value:\x028\x01\" \n" +
 	"\x06Routes\x12\x16\n" +
-	"\x06routes\x18\x01 \x03(\tR\x06routesB=Z;github.com/jsiebens/ionscale/pkg/gen/ionscale/v1;ionscalev1b\x06proto3"
+	"\x06routes\x18\x01 \x03(\tR\x06routes\"I\n" +
+	"\tDNSRecord\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12\x14\n" +
+	"\x05value\x18\x03 \x01(\tR\x05valueB=Z;github.com/jsiebens/ionscale/pkg/gen/ionscale/v1;ionscalev1b\x06proto3"
 
 var (
 	file_ionscale_v1_dns_proto_rawDescOnce sync.Once
@@ -393,7 +471,7 @@ func file_ionscale_v1_dns_proto_rawDescGZIP() []byte {
 	return file_ionscale_v1_dns_proto_rawDescData
 }
 
-var file_ionscale_v1_dns_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_ionscale_v1_dns_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_ionscale_v1_dns_proto_goTypes = []any{
 	(*GetDNSConfigRequest)(nil),  // 0: ionscale.v1.GetDNSConfigRequest
 	(*GetDNSConfigResponse)(nil), // 1: ionscale.v1.GetDNSConfigResponse
@@ -401,19 +479,21 @@ var file_ionscale_v1_dns_proto_goTypes = []any{
 	(*SetDNSConfigResponse)(nil), // 3: ionscale.v1.SetDNSConfigResponse
 	(*DNSConfig)(nil),            // 4: ionscale.v1.DNSConfig
 	(*Routes)(nil),               // 5: ionscale.v1.Routes
-	nil,                          // 6: ionscale.v1.DNSConfig.RoutesEntry
+	(*DNSRecord)(nil),            // 6: ionscale.v1.DNSRecord
+	nil,                          // 7: ionscale.v1.DNSConfig.RoutesEntry
 }
 var file_ionscale_v1_dns_proto_depIdxs = []int32{
 	4, // 0: ionscale.v1.GetDNSConfigResponse.config:type_name -> ionscale.v1.DNSConfig
 	4, // 1: ionscale.v1.SetDNSConfigRequest.config:type_name -> ionscale.v1.DNSConfig
 	4, // 2: ionscale.v1.SetDNSConfigResponse.config:type_name -> ionscale.v1.DNSConfig
-	6, // 3: ionscale.v1.DNSConfig.routes:type_name -> ionscale.v1.DNSConfig.RoutesEntry
-	5, // 4: ionscale.v1.DNSConfig.RoutesEntry.value:type_name -> ionscale.v1.Routes
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	7, // 3: ionscale.v1.DNSConfig.routes:type_name -> ionscale.v1.DNSConfig.RoutesEntry
+	6, // 4: ionscale.v1.DNSConfig.extra_records:type_name -> ionscale.v1.DNSRecord
+	5, // 5: ionscale.v1.DNSConfig.RoutesEntry.value:type_name -> ionscale.v1.Routes
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_ionscale_v1_dns_proto_init() }
@@ -427,7 +507,7 @@ func file_ionscale_v1_dns_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ionscale_v1_dns_proto_rawDesc), len(file_ionscale_v1_dns_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

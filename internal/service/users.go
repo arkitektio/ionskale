@@ -33,11 +33,15 @@ func (s *Service) ListUsers(ctx context.Context, req *connect.Request[api.ListUs
 
 	resp := &api.ListUsersResponse{}
 	for _, u := range users {
-		resp.Users = append(resp.Users, &api.User{
+		user := &api.User{
 			Id:   u.ID,
 			Name: u.Name,
 			Role: string(tailnet.IAMPolicy.Get().GetRole(u)),
-		})
+		}
+		if u.Account != nil {
+			user.ExternalId = u.Account.ExternalID
+		}
+		resp.Users = append(resp.Users, user)
 	}
 
 	return connect.NewResponse(resp), nil

@@ -38,24 +38,33 @@ func (s *Service) CreateTailnet(ctx context.Context, req *connect.Request[api.Cr
 		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("permission denied"))
 	}
 
+	if req.Msg.Name == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name is required"))
+	}
+
 	check, err := s.repository.GetTailnetByName(ctx, req.Msg.Name)
 	if err != nil {
 		return nil, logError(err)
 	}
 	if check != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("tailnet with name '%s' already exists", req.Msg.Name))
+		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("tailnet with name '%s' already exists (id %d)", req.Msg.Name, check.ID))
 	}
 
 	// one tailnet per organization: makes provisioning by an external backend
-	// idempotent (catch AlreadyExists) and prevents accidental duplicates
+	// idempotent (catch AlreadyExists, then GetTailnetByOrganization) and
+	// prevents accidental duplicates
 	if req.Msg.Organization != "" {
-		existing, err := s.repository.ListTailnetsByOrganization(ctx, req.Msg.Organization)
+		existing, err := s.repository.GetTailnetByOrganization(ctx, req.Msg.Organization)
 		if err != nil {
 			return nil, logError(err)
 		}
-		if len(existing) > 0 {
-			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("a tailnet for organization '%s' already exists", req.Msg.Organization))
+		if existing != nil {
+			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("a tailnet for organization '%s' already exists (id %d)", req.Msg.Organization, existing.ID))
 		}
+	}
+
+	if err := validateDNSConfig(req.Msg.DnsConfig); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
 	iamPolicy := domain.NewHuJSON(&domain.IAMPolicy{})
@@ -158,18 +167,51 @@ func (s *Service) UpdateTailnet(ctx context.Context, req *connect.Request[api.Up
 	}
 
 	if req.Msg.DnsConfig != nil {
+		if err := validateDNSConfig(req.Msg.DnsConfig); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
 		tailnet.DNSConfig = apiDNSConfigToDomainDNSConfig(req.Msg.DnsConfig)
 	}
 
-	tailnet.ServiceCollectionEnabled = req.Msg.ServiceCollectionEnabled
-	tailnet.FileSharingEnabled = req.Msg.FileSharingEnabled
-	tailnet.SSHEnabled = req.Msg.SshEnabled
-	tailnet.MachineAuthorizationEnabled = req.Msg.MachineAuthorizationEnabled
+	// feature flags are optional so a caller can flip one without knowing the
+	// current value of the others
+	if req.Msg.ServiceCollectionEnabled != nil {
+		tailnet.ServiceCollectionEnabled = *req.Msg.ServiceCollectionEnabled
+	}
+	if req.Msg.FileSharingEnabled != nil {
+		tailnet.FileSharingEnabled = *req.Msg.FileSharingEnabled
+	}
+	if req.Msg.SshEnabled != nil {
+		tailnet.SSHEnabled = *req.Msg.SshEnabled
+	}
+	if req.Msg.MachineAuthorizationEnabled != nil {
+		tailnet.MachineAuthorizationEnabled = *req.Msg.MachineAuthorizationEnabled
+	}
+
+	// renaming changes every machine's MagicDNS name and the tailnet's cert
+	// domains, so it is reserved for system admins
+	oldName := tailnet.Name
+	if req.Msg.Name != "" && req.Msg.Name != tailnet.Name {
+		if !principal.IsSystemAdmin() {
+			return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("renaming a tailnet requires system admin"))
+		}
+		check, err := s.repository.GetTailnetByName(ctx, req.Msg.Name)
+		if err != nil {
+			return nil, logError(err)
+		}
+		if check != nil {
+			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("tailnet with name '%s' already exists (id %d)", req.Msg.Name, check.ID))
+		}
+		tailnet.Name = req.Msg.Name
+	}
 
 	if err := s.repository.SaveTailnet(ctx, tailnet); err != nil {
 		return nil, logError(err)
 	}
 
+	if tailnet.Name != oldName {
+		audit.Log("tailnet.renamed", append(audit.Tailnet(tailnet), audit.Actor(principal), zap.String("old_name", oldName))...)
+	}
 	audit.Log("tailnet.updated", append(audit.Tailnet(tailnet), audit.Actor(principal))...)
 
 	s.sessionManager.NotifyAll(tailnet.ID)
@@ -205,6 +247,36 @@ func (s *Service) GetTailnet(ctx context.Context, req *connect.Request[api.GetTa
 	}
 
 	return connect.NewResponse(&api.GetTailnetResponse{Tailnet: t}), nil
+}
+
+// GetTailnetByOrganization looks a tailnet up by the organization it is bound
+// to; it is the read half of idempotent provisioning by an identity provider
+// (create, or on AlreadyExists fetch what is there).
+func (s *Service) GetTailnetByOrganization(ctx context.Context, req *connect.Request[api.GetTailnetByOrganizationRequest]) (*connect.Response[api.GetTailnetByOrganizationResponse], error) {
+	principal := CurrentPrincipal(ctx)
+	if !principal.IsSystemAdmin() {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("permission denied"))
+	}
+
+	if req.Msg.Organization == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("organization is required"))
+	}
+
+	tailnet, err := s.repository.GetTailnetByOrganization(ctx, req.Msg.Organization)
+	if err != nil {
+		return nil, logError(err)
+	}
+
+	if tailnet == nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("no tailnet for organization '%s'", req.Msg.Organization))
+	}
+
+	t, err := domainTailnetToApiTailnet(tailnet)
+	if err != nil {
+		return nil, logError(err)
+	}
+
+	return connect.NewResponse(&api.GetTailnetByOrganizationResponse{Tailnet: t}), nil
 }
 
 func (s *Service) ListTailnets(ctx context.Context, req *connect.Request[api.ListTailnetsRequest]) (*connect.Response[api.ListTailnetsResponse], error) {
