@@ -18,6 +18,9 @@ func Actor(p domain.Principal) zap.Field {
 	if p.User != nil {
 		return zap.String("actor", p.User.Name)
 	}
+	if p.ServiceName != "" {
+		return zap.String("actor", "service:"+p.ServiceName)
+	}
 	if p.IsSystemAdmin() {
 		return zap.String("actor", "system-admin")
 	}

@@ -24,7 +24,7 @@ func TestSwitchAccounts(t *testing.T) {
 		require.Equal(t, http.StatusOK, code)
 
 		require.NoError(t, node.WaitFor(tsn.Connected()))
-		require.NoError(t, node.Check(tsn.HasUser("john@localtest.me")))
+		require.NoError(t, node.Check(tsn.HasUser("john")))
 		require.NoError(t, node.Check(tsn.HasName("switch")))
 
 		code, err = node.LoginWithOidc()
@@ -32,7 +32,7 @@ func TestSwitchAccounts(t *testing.T) {
 		require.Equal(t, http.StatusOK, code)
 
 		require.NoError(t, node.WaitFor(tsn.Connected()))
-		require.NoError(t, node.Check(tsn.HasUser("jane@localtest.me")))
+		require.NoError(t, node.Check(tsn.HasUser("jane")))
 		require.NoError(t, node.Check(tsn.HasName("switch-1")))
 		require.NoError(t, node.Check(tsn.PeerCount(1)))
 

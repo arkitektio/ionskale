@@ -47,14 +47,14 @@ func IsRunning() Condition {
 	}
 }
 
-func HasUser(email string) Condition {
+func HasUser(loginName string) Condition {
 	return func(status *ipnstate.Status) bool {
 		if status.Self == nil {
 			return false
 		}
 		userID := status.Self.UserID
 		if u, ok := status.User[userID]; ok {
-			return u.LoginName == email
+			return u.LoginName == loginName
 		}
 
 		return false

@@ -33,11 +33,15 @@ func (s *Service) ListUsers(ctx context.Context, req *connect.Request[api.ListUs
 
 	resp := &api.ListUsersResponse{}
 	for _, u := range users {
-		resp.Users = append(resp.Users, &api.User{
+		user := &api.User{
 			Id:   u.ID,
 			Name: u.Name,
 			Role: string(tailnet.IAMPolicy.Get().GetRole(u)),
-		})
+		}
+		if u.Account != nil {
+			user.ExternalId = u.Account.ExternalID
+		}
+		resp.Users = append(resp.Users, user)
 	}
 
 	return connect.NewResponse(resp), nil
@@ -103,6 +107,10 @@ func (s *Service) DeleteUser(ctx context.Context, req *connect.Request[api.Delet
 // one organization. It is meant to be called by the identity provider's
 // backend the moment a membership is revoked, instead of waiting for machine
 // keys to expire.
+//
+// The call is idempotent: an account that never logged in, or that was already
+// revoked, yields an empty response rather than an error, so callers can retry
+// blindly and revoke on every membership removal without checking first.
 func (s *Service) RevokeAccount(ctx context.Context, req *connect.Request[api.RevokeAccountRequest]) (*connect.Response[api.RevokeAccountResponse], error) {
 	principal := CurrentPrincipal(ctx)
 	if !principal.IsSystemAdmin() {
@@ -121,7 +129,8 @@ func (s *Service) RevokeAccount(ctx context.Context, req *connect.Request[api.Re
 		return nil, logError(err)
 	}
 	if len(accounts) == 0 {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("account not found"))
+		audit.Log("account.revoked", audit.Actor(principal), zap.String("external_id", req.Msg.ExternalId), zap.String("org", req.Msg.Organization), zap.Bool("noop", true))
+		return connect.NewResponse(&api.RevokeAccountResponse{}), nil
 	}
 
 	var users domain.Users

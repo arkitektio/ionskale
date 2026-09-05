@@ -50,7 +50,17 @@ func ToDNSConfig(m *domain.Machine, tailnet *domain.Tailnet, c *domain.DNSConfig
 		dnsConfig.FallbackResolvers = resolvers
 	}
 
-	if len(c.Routes) != 0 || certsEnabled {
+	// static records are answered by the MagicDNS resolver; an empty route per
+	// record name makes the OS send those queries to 100.100.100.100 even when
+	// MagicDNS proxying is off
+	for _, r := range c.ExtraRecords {
+		dnsConfig.ExtraRecords = append(dnsConfig.ExtraRecords, tailcfg.DNSRecord{Name: r.Name, Type: r.Type, Value: r.Value})
+		if _, exists := routes[r.Name]; !exists {
+			routes[r.Name] = nil
+		}
+	}
+
+	if len(c.Routes) != 0 || len(c.ExtraRecords) != 0 || certsEnabled {
 		for r, s := range c.Routes {
 			routeResolver := make([]*dnstype.Resolver, 0)
 			for _, addr := range s {
@@ -226,6 +236,7 @@ func ToNode(capVer tailcfg.CapabilityVersion, m *domain.Machine, tailnet *domain
 	if m.KeyExpiryDisabled {
 		n.KeyExpiry = time.Time{}
 	}
+	n.Expired = m.IsExpired()
 
 	n.Online = &connected
 	if !connected && m.LastSeen != nil {

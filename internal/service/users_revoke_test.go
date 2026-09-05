@@ -153,15 +153,41 @@ func TestRevokeAccountAuthz(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
 
-	// unknown account -> not found
-	_, err = svc.RevokeAccount(systemAdminCtx(), connect.NewRequest(&api.RevokeAccountRequest{ExternalId: "nope"}))
-	require.Error(t, err)
-	assert.Equal(t, connect.CodeNotFound, connect.CodeOf(err))
-
 	// missing external id -> invalid argument
 	_, err = svc.RevokeAccount(systemAdminCtx(), connect.NewRequest(&api.RevokeAccountRequest{}))
 	require.Error(t, err)
 	assert.Equal(t, connect.CodeInvalidArgument, connect.CodeOf(err))
+}
+
+func TestRevokeAccountIsIdempotent(t *testing.T) {
+	svc, repo := newTestService(t)
+	ctx := context.Background()
+
+	// unknown account -> success with nothing revoked, so an identity provider
+	// can revoke on every membership removal without checking first
+	resp, err := svc.RevokeAccount(systemAdminCtx(), connect.NewRequest(&api.RevokeAccountRequest{ExternalId: "nope"}))
+	require.NoError(t, err)
+	assert.Empty(t, resp.Msg.TailnetIds)
+
+	tailnet := newTestTailnet(t, repo, "org-net", "42")
+	account, _, err := repo.GetOrCreateAccount(ctx, "sub1", "42", "john@example.com")
+	require.NoError(t, err)
+	_, _, err = repo.GetOrCreateUserWithAccount(ctx, tailnet, account)
+	require.NoError(t, err)
+
+	// known account, but no user in the requested organization -> no-op
+	resp, err = svc.RevokeAccount(systemAdminCtx(), connect.NewRequest(&api.RevokeAccountRequest{ExternalId: "sub1", Organization: "7"}))
+	require.NoError(t, err)
+	assert.Empty(t, resp.Msg.TailnetIds)
+
+	// first revoke does the work, the retry is a no-op
+	resp, err = svc.RevokeAccount(systemAdminCtx(), connect.NewRequest(&api.RevokeAccountRequest{ExternalId: "sub1", Organization: "42"}))
+	require.NoError(t, err)
+	assert.Equal(t, []uint64{tailnet.ID}, resp.Msg.TailnetIds)
+
+	resp, err = svc.RevokeAccount(systemAdminCtx(), connect.NewRequest(&api.RevokeAccountRequest{ExternalId: "sub1", Organization: "42"}))
+	require.NoError(t, err)
+	assert.Empty(t, resp.Msg.TailnetIds)
 }
 
 func TestCreateTailnetRejectsDuplicateOrganization(t *testing.T) {

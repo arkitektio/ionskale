@@ -297,18 +297,24 @@ func (x *CreateTailnetResponse) GetTailnet() *Tailnet {
 	return nil
 }
 
+// UpdateTailnetRequest is a partial update: policies and the DNS config are
+// replaced when non-empty, the feature flags only when set, and the tailnet is
+// renamed when name is non-empty.
 type UpdateTailnetRequest struct {
 	state                       protoimpl.MessageState `protogen:"open.v1"`
 	TailnetId                   uint64                 `protobuf:"varint,1,opt,name=tailnet_id,json=tailnetId,proto3" json:"tailnet_id,omitempty"`
 	IamPolicy                   string                 `protobuf:"bytes,2,opt,name=iam_policy,json=iamPolicy,proto3" json:"iam_policy,omitempty"`
 	AclPolicy                   string                 `protobuf:"bytes,3,opt,name=acl_policy,json=aclPolicy,proto3" json:"acl_policy,omitempty"`
 	DnsConfig                   *DNSConfig             `protobuf:"bytes,4,opt,name=dns_config,json=dnsConfig,proto3" json:"dns_config,omitempty"`
-	ServiceCollectionEnabled    bool                   `protobuf:"varint,5,opt,name=service_collection_enabled,json=serviceCollectionEnabled,proto3" json:"service_collection_enabled,omitempty"`
-	FileSharingEnabled          bool                   `protobuf:"varint,6,opt,name=file_sharing_enabled,json=fileSharingEnabled,proto3" json:"file_sharing_enabled,omitempty"`
-	SshEnabled                  bool                   `protobuf:"varint,7,opt,name=ssh_enabled,json=sshEnabled,proto3" json:"ssh_enabled,omitempty"`
-	MachineAuthorizationEnabled bool                   `protobuf:"varint,8,opt,name=machine_authorization_enabled,json=machineAuthorizationEnabled,proto3" json:"machine_authorization_enabled,omitempty"`
-	unknownFields               protoimpl.UnknownFields
-	sizeCache                   protoimpl.SizeCache
+	ServiceCollectionEnabled    *bool                  `protobuf:"varint,5,opt,name=service_collection_enabled,json=serviceCollectionEnabled,proto3,oneof" json:"service_collection_enabled,omitempty"`
+	FileSharingEnabled          *bool                  `protobuf:"varint,6,opt,name=file_sharing_enabled,json=fileSharingEnabled,proto3,oneof" json:"file_sharing_enabled,omitempty"`
+	SshEnabled                  *bool                  `protobuf:"varint,7,opt,name=ssh_enabled,json=sshEnabled,proto3,oneof" json:"ssh_enabled,omitempty"`
+	MachineAuthorizationEnabled *bool                  `protobuf:"varint,8,opt,name=machine_authorization_enabled,json=machineAuthorizationEnabled,proto3,oneof" json:"machine_authorization_enabled,omitempty"`
+	// new name for the tailnet (system admin only); changes the MagicDNS suffix
+	// of every machine in it
+	Name          string `protobuf:"bytes,9,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateTailnetRequest) Reset() {
@@ -370,31 +376,38 @@ func (x *UpdateTailnetRequest) GetDnsConfig() *DNSConfig {
 }
 
 func (x *UpdateTailnetRequest) GetServiceCollectionEnabled() bool {
-	if x != nil {
-		return x.ServiceCollectionEnabled
+	if x != nil && x.ServiceCollectionEnabled != nil {
+		return *x.ServiceCollectionEnabled
 	}
 	return false
 }
 
 func (x *UpdateTailnetRequest) GetFileSharingEnabled() bool {
-	if x != nil {
-		return x.FileSharingEnabled
+	if x != nil && x.FileSharingEnabled != nil {
+		return *x.FileSharingEnabled
 	}
 	return false
 }
 
 func (x *UpdateTailnetRequest) GetSshEnabled() bool {
-	if x != nil {
-		return x.SshEnabled
+	if x != nil && x.SshEnabled != nil {
+		return *x.SshEnabled
 	}
 	return false
 }
 
 func (x *UpdateTailnetRequest) GetMachineAuthorizationEnabled() bool {
-	if x != nil {
-		return x.MachineAuthorizationEnabled
+	if x != nil && x.MachineAuthorizationEnabled != nil {
+		return *x.MachineAuthorizationEnabled
 	}
 	return false
+}
+
+func (x *UpdateTailnetRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
 }
 
 type UpdateTailnetResponse struct {
@@ -529,6 +542,94 @@ func (x *GetTailnetResponse) GetTailnet() *Tailnet {
 	return nil
 }
 
+type GetTailnetByOrganizationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Organization  string                 `protobuf:"bytes,1,opt,name=organization,proto3" json:"organization,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTailnetByOrganizationRequest) Reset() {
+	*x = GetTailnetByOrganizationRequest{}
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTailnetByOrganizationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTailnetByOrganizationRequest) ProtoMessage() {}
+
+func (x *GetTailnetByOrganizationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTailnetByOrganizationRequest.ProtoReflect.Descriptor instead.
+func (*GetTailnetByOrganizationRequest) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetTailnetByOrganizationRequest) GetOrganization() string {
+	if x != nil {
+		return x.Organization
+	}
+	return ""
+}
+
+type GetTailnetByOrganizationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tailnet       *Tailnet               `protobuf:"bytes,1,opt,name=tailnet,proto3" json:"tailnet,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTailnetByOrganizationResponse) Reset() {
+	*x = GetTailnetByOrganizationResponse{}
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTailnetByOrganizationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTailnetByOrganizationResponse) ProtoMessage() {}
+
+func (x *GetTailnetByOrganizationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTailnetByOrganizationResponse.ProtoReflect.Descriptor instead.
+func (*GetTailnetByOrganizationResponse) Descriptor() ([]byte, []int) {
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetTailnetByOrganizationResponse) GetTailnet() *Tailnet {
+	if x != nil {
+		return x.Tailnet
+	}
+	return nil
+}
+
 type ListTailnetsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// when set, only tailnets bound to this organization are returned
@@ -540,7 +641,7 @@ type ListTailnetsRequest struct {
 
 func (x *ListTailnetsRequest) Reset() {
 	*x = ListTailnetsRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[7]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -552,7 +653,7 @@ func (x *ListTailnetsRequest) String() string {
 func (*ListTailnetsRequest) ProtoMessage() {}
 
 func (x *ListTailnetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[7]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -565,7 +666,7 @@ func (x *ListTailnetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTailnetsRequest.ProtoReflect.Descriptor instead.
 func (*ListTailnetsRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{7}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListTailnetsRequest) GetOrganization() string {
@@ -584,7 +685,7 @@ type ListTailnetsResponse struct {
 
 func (x *ListTailnetsResponse) Reset() {
 	*x = ListTailnetsResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[8]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -596,7 +697,7 @@ func (x *ListTailnetsResponse) String() string {
 func (*ListTailnetsResponse) ProtoMessage() {}
 
 func (x *ListTailnetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[8]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -609,7 +710,7 @@ func (x *ListTailnetsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTailnetsResponse.ProtoReflect.Descriptor instead.
 func (*ListTailnetsResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{8}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListTailnetsResponse) GetTailnet() []*Tailnet {
@@ -629,7 +730,7 @@ type DeleteTailnetRequest struct {
 
 func (x *DeleteTailnetRequest) Reset() {
 	*x = DeleteTailnetRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[9]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -641,7 +742,7 @@ func (x *DeleteTailnetRequest) String() string {
 func (*DeleteTailnetRequest) ProtoMessage() {}
 
 func (x *DeleteTailnetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[9]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -654,7 +755,7 @@ func (x *DeleteTailnetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTailnetRequest.ProtoReflect.Descriptor instead.
 func (*DeleteTailnetRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{9}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DeleteTailnetRequest) GetTailnetId() uint64 {
@@ -679,7 +780,7 @@ type DeleteTailnetResponse struct {
 
 func (x *DeleteTailnetResponse) Reset() {
 	*x = DeleteTailnetResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[10]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -691,7 +792,7 @@ func (x *DeleteTailnetResponse) String() string {
 func (*DeleteTailnetResponse) ProtoMessage() {}
 
 func (x *DeleteTailnetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[10]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -704,7 +805,7 @@ func (x *DeleteTailnetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTailnetResponse.ProtoReflect.Descriptor instead.
 func (*DeleteTailnetResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{10}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{12}
 }
 
 type GetDERPMapRequest struct {
@@ -716,7 +817,7 @@ type GetDERPMapRequest struct {
 
 func (x *GetDERPMapRequest) Reset() {
 	*x = GetDERPMapRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[11]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -728,7 +829,7 @@ func (x *GetDERPMapRequest) String() string {
 func (*GetDERPMapRequest) ProtoMessage() {}
 
 func (x *GetDERPMapRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[11]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -741,7 +842,7 @@ func (x *GetDERPMapRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDERPMapRequest.ProtoReflect.Descriptor instead.
 func (*GetDERPMapRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{11}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetDERPMapRequest) GetTailnetId() uint64 {
@@ -760,7 +861,7 @@ type GetDERPMapResponse struct {
 
 func (x *GetDERPMapResponse) Reset() {
 	*x = GetDERPMapResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[12]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -772,7 +873,7 @@ func (x *GetDERPMapResponse) String() string {
 func (*GetDERPMapResponse) ProtoMessage() {}
 
 func (x *GetDERPMapResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[12]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -785,7 +886,7 @@ func (x *GetDERPMapResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDERPMapResponse.ProtoReflect.Descriptor instead.
 func (*GetDERPMapResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{12}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetDERPMapResponse) GetValue() []byte {
@@ -805,7 +906,7 @@ type SetDERPMapRequest struct {
 
 func (x *SetDERPMapRequest) Reset() {
 	*x = SetDERPMapRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[13]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -817,7 +918,7 @@ func (x *SetDERPMapRequest) String() string {
 func (*SetDERPMapRequest) ProtoMessage() {}
 
 func (x *SetDERPMapRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[13]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -830,7 +931,7 @@ func (x *SetDERPMapRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDERPMapRequest.ProtoReflect.Descriptor instead.
 func (*SetDERPMapRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{13}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *SetDERPMapRequest) GetTailnetId() uint64 {
@@ -856,7 +957,7 @@ type SetDERPMapResponse struct {
 
 func (x *SetDERPMapResponse) Reset() {
 	*x = SetDERPMapResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[14]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -868,7 +969,7 @@ func (x *SetDERPMapResponse) String() string {
 func (*SetDERPMapResponse) ProtoMessage() {}
 
 func (x *SetDERPMapResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[14]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -881,7 +982,7 @@ func (x *SetDERPMapResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDERPMapResponse.ProtoReflect.Descriptor instead.
 func (*SetDERPMapResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{14}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *SetDERPMapResponse) GetValue() []byte {
@@ -900,7 +1001,7 @@ type ResetDERPMapRequest struct {
 
 func (x *ResetDERPMapRequest) Reset() {
 	*x = ResetDERPMapRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[15]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -912,7 +1013,7 @@ func (x *ResetDERPMapRequest) String() string {
 func (*ResetDERPMapRequest) ProtoMessage() {}
 
 func (x *ResetDERPMapRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[15]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -925,7 +1026,7 @@ func (x *ResetDERPMapRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetDERPMapRequest.ProtoReflect.Descriptor instead.
 func (*ResetDERPMapRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{15}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ResetDERPMapRequest) GetTailnetId() uint64 {
@@ -943,7 +1044,7 @@ type ResetDERPMapResponse struct {
 
 func (x *ResetDERPMapResponse) Reset() {
 	*x = ResetDERPMapResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[16]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -955,7 +1056,7 @@ func (x *ResetDERPMapResponse) String() string {
 func (*ResetDERPMapResponse) ProtoMessage() {}
 
 func (x *ResetDERPMapResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[16]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -968,7 +1069,7 @@ func (x *ResetDERPMapResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetDERPMapResponse.ProtoReflect.Descriptor instead.
 func (*ResetDERPMapResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{16}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{18}
 }
 
 type EnableFileSharingRequest struct {
@@ -980,7 +1081,7 @@ type EnableFileSharingRequest struct {
 
 func (x *EnableFileSharingRequest) Reset() {
 	*x = EnableFileSharingRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[17]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -992,7 +1093,7 @@ func (x *EnableFileSharingRequest) String() string {
 func (*EnableFileSharingRequest) ProtoMessage() {}
 
 func (x *EnableFileSharingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[17]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1005,7 +1106,7 @@ func (x *EnableFileSharingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableFileSharingRequest.ProtoReflect.Descriptor instead.
 func (*EnableFileSharingRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{17}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *EnableFileSharingRequest) GetTailnetId() uint64 {
@@ -1023,7 +1124,7 @@ type EnableFileSharingResponse struct {
 
 func (x *EnableFileSharingResponse) Reset() {
 	*x = EnableFileSharingResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[18]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1035,7 +1136,7 @@ func (x *EnableFileSharingResponse) String() string {
 func (*EnableFileSharingResponse) ProtoMessage() {}
 
 func (x *EnableFileSharingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[18]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1048,7 +1149,7 @@ func (x *EnableFileSharingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableFileSharingResponse.ProtoReflect.Descriptor instead.
 func (*EnableFileSharingResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{18}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{20}
 }
 
 type DisableFileSharingRequest struct {
@@ -1060,7 +1161,7 @@ type DisableFileSharingRequest struct {
 
 func (x *DisableFileSharingRequest) Reset() {
 	*x = DisableFileSharingRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[19]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1072,7 +1173,7 @@ func (x *DisableFileSharingRequest) String() string {
 func (*DisableFileSharingRequest) ProtoMessage() {}
 
 func (x *DisableFileSharingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[19]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1085,7 +1186,7 @@ func (x *DisableFileSharingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableFileSharingRequest.ProtoReflect.Descriptor instead.
 func (*DisableFileSharingRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{19}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *DisableFileSharingRequest) GetTailnetId() uint64 {
@@ -1103,7 +1204,7 @@ type DisableFileSharingResponse struct {
 
 func (x *DisableFileSharingResponse) Reset() {
 	*x = DisableFileSharingResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[20]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1115,7 +1216,7 @@ func (x *DisableFileSharingResponse) String() string {
 func (*DisableFileSharingResponse) ProtoMessage() {}
 
 func (x *DisableFileSharingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[20]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1128,7 +1229,7 @@ func (x *DisableFileSharingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableFileSharingResponse.ProtoReflect.Descriptor instead.
 func (*DisableFileSharingResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{20}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{22}
 }
 
 type EnableServiceCollectionRequest struct {
@@ -1140,7 +1241,7 @@ type EnableServiceCollectionRequest struct {
 
 func (x *EnableServiceCollectionRequest) Reset() {
 	*x = EnableServiceCollectionRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[21]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1152,7 +1253,7 @@ func (x *EnableServiceCollectionRequest) String() string {
 func (*EnableServiceCollectionRequest) ProtoMessage() {}
 
 func (x *EnableServiceCollectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[21]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1165,7 +1266,7 @@ func (x *EnableServiceCollectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableServiceCollectionRequest.ProtoReflect.Descriptor instead.
 func (*EnableServiceCollectionRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{21}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *EnableServiceCollectionRequest) GetTailnetId() uint64 {
@@ -1183,7 +1284,7 @@ type EnableServiceCollectionResponse struct {
 
 func (x *EnableServiceCollectionResponse) Reset() {
 	*x = EnableServiceCollectionResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[22]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1195,7 +1296,7 @@ func (x *EnableServiceCollectionResponse) String() string {
 func (*EnableServiceCollectionResponse) ProtoMessage() {}
 
 func (x *EnableServiceCollectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[22]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1208,7 +1309,7 @@ func (x *EnableServiceCollectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableServiceCollectionResponse.ProtoReflect.Descriptor instead.
 func (*EnableServiceCollectionResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{22}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{24}
 }
 
 type DisableServiceCollectionRequest struct {
@@ -1220,7 +1321,7 @@ type DisableServiceCollectionRequest struct {
 
 func (x *DisableServiceCollectionRequest) Reset() {
 	*x = DisableServiceCollectionRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[23]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1232,7 +1333,7 @@ func (x *DisableServiceCollectionRequest) String() string {
 func (*DisableServiceCollectionRequest) ProtoMessage() {}
 
 func (x *DisableServiceCollectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[23]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1245,7 +1346,7 @@ func (x *DisableServiceCollectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableServiceCollectionRequest.ProtoReflect.Descriptor instead.
 func (*DisableServiceCollectionRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{23}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *DisableServiceCollectionRequest) GetTailnetId() uint64 {
@@ -1263,7 +1364,7 @@ type DisableServiceCollectionResponse struct {
 
 func (x *DisableServiceCollectionResponse) Reset() {
 	*x = DisableServiceCollectionResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[24]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1275,7 +1376,7 @@ func (x *DisableServiceCollectionResponse) String() string {
 func (*DisableServiceCollectionResponse) ProtoMessage() {}
 
 func (x *DisableServiceCollectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[24]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1288,7 +1389,7 @@ func (x *DisableServiceCollectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableServiceCollectionResponse.ProtoReflect.Descriptor instead.
 func (*DisableServiceCollectionResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{24}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{26}
 }
 
 type EnableSSHRequest struct {
@@ -1300,7 +1401,7 @@ type EnableSSHRequest struct {
 
 func (x *EnableSSHRequest) Reset() {
 	*x = EnableSSHRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[25]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1312,7 +1413,7 @@ func (x *EnableSSHRequest) String() string {
 func (*EnableSSHRequest) ProtoMessage() {}
 
 func (x *EnableSSHRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[25]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1325,7 +1426,7 @@ func (x *EnableSSHRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableSSHRequest.ProtoReflect.Descriptor instead.
 func (*EnableSSHRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{25}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *EnableSSHRequest) GetTailnetId() uint64 {
@@ -1343,7 +1444,7 @@ type EnableSSHResponse struct {
 
 func (x *EnableSSHResponse) Reset() {
 	*x = EnableSSHResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[26]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1355,7 +1456,7 @@ func (x *EnableSSHResponse) String() string {
 func (*EnableSSHResponse) ProtoMessage() {}
 
 func (x *EnableSSHResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[26]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1368,7 +1469,7 @@ func (x *EnableSSHResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableSSHResponse.ProtoReflect.Descriptor instead.
 func (*EnableSSHResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{26}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{28}
 }
 
 type DisableSSHRequest struct {
@@ -1380,7 +1481,7 @@ type DisableSSHRequest struct {
 
 func (x *DisableSSHRequest) Reset() {
 	*x = DisableSSHRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[27]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1392,7 +1493,7 @@ func (x *DisableSSHRequest) String() string {
 func (*DisableSSHRequest) ProtoMessage() {}
 
 func (x *DisableSSHRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[27]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1405,7 +1506,7 @@ func (x *DisableSSHRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableSSHRequest.ProtoReflect.Descriptor instead.
 func (*DisableSSHRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{27}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DisableSSHRequest) GetTailnetId() uint64 {
@@ -1423,7 +1524,7 @@ type DisableSSHResponse struct {
 
 func (x *DisableSSHResponse) Reset() {
 	*x = DisableSSHResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[28]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1435,7 +1536,7 @@ func (x *DisableSSHResponse) String() string {
 func (*DisableSSHResponse) ProtoMessage() {}
 
 func (x *DisableSSHResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[28]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1448,7 +1549,7 @@ func (x *DisableSSHResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableSSHResponse.ProtoReflect.Descriptor instead.
 func (*DisableSSHResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{28}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{30}
 }
 
 type EnableMachineAuthorizationRequest struct {
@@ -1460,7 +1561,7 @@ type EnableMachineAuthorizationRequest struct {
 
 func (x *EnableMachineAuthorizationRequest) Reset() {
 	*x = EnableMachineAuthorizationRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[29]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1472,7 +1573,7 @@ func (x *EnableMachineAuthorizationRequest) String() string {
 func (*EnableMachineAuthorizationRequest) ProtoMessage() {}
 
 func (x *EnableMachineAuthorizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[29]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1485,7 +1586,7 @@ func (x *EnableMachineAuthorizationRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use EnableMachineAuthorizationRequest.ProtoReflect.Descriptor instead.
 func (*EnableMachineAuthorizationRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{29}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *EnableMachineAuthorizationRequest) GetTailnetId() uint64 {
@@ -1503,7 +1604,7 @@ type EnableMachineAuthorizationResponse struct {
 
 func (x *EnableMachineAuthorizationResponse) Reset() {
 	*x = EnableMachineAuthorizationResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[30]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1515,7 +1616,7 @@ func (x *EnableMachineAuthorizationResponse) String() string {
 func (*EnableMachineAuthorizationResponse) ProtoMessage() {}
 
 func (x *EnableMachineAuthorizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[30]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1528,7 +1629,7 @@ func (x *EnableMachineAuthorizationResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use EnableMachineAuthorizationResponse.ProtoReflect.Descriptor instead.
 func (*EnableMachineAuthorizationResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{30}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{32}
 }
 
 type DisableMachineAuthorizationRequest struct {
@@ -1540,7 +1641,7 @@ type DisableMachineAuthorizationRequest struct {
 
 func (x *DisableMachineAuthorizationRequest) Reset() {
 	*x = DisableMachineAuthorizationRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[31]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1552,7 +1653,7 @@ func (x *DisableMachineAuthorizationRequest) String() string {
 func (*DisableMachineAuthorizationRequest) ProtoMessage() {}
 
 func (x *DisableMachineAuthorizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[31]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1565,7 +1666,7 @@ func (x *DisableMachineAuthorizationRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use DisableMachineAuthorizationRequest.ProtoReflect.Descriptor instead.
 func (*DisableMachineAuthorizationRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{31}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *DisableMachineAuthorizationRequest) GetTailnetId() uint64 {
@@ -1583,7 +1684,7 @@ type DisableMachineAuthorizationResponse struct {
 
 func (x *DisableMachineAuthorizationResponse) Reset() {
 	*x = DisableMachineAuthorizationResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[32]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1595,7 +1696,7 @@ func (x *DisableMachineAuthorizationResponse) String() string {
 func (*DisableMachineAuthorizationResponse) ProtoMessage() {}
 
 func (x *DisableMachineAuthorizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[32]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1608,7 +1709,7 @@ func (x *DisableMachineAuthorizationResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use DisableMachineAuthorizationResponse.ProtoReflect.Descriptor instead.
 func (*DisableMachineAuthorizationResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{32}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{34}
 }
 
 type EnableTailnetLockRequest struct {
@@ -1620,7 +1721,7 @@ type EnableTailnetLockRequest struct {
 
 func (x *EnableTailnetLockRequest) Reset() {
 	*x = EnableTailnetLockRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[33]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1632,7 +1733,7 @@ func (x *EnableTailnetLockRequest) String() string {
 func (*EnableTailnetLockRequest) ProtoMessage() {}
 
 func (x *EnableTailnetLockRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[33]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1645,7 +1746,7 @@ func (x *EnableTailnetLockRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableTailnetLockRequest.ProtoReflect.Descriptor instead.
 func (*EnableTailnetLockRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{33}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *EnableTailnetLockRequest) GetTailnetId() uint64 {
@@ -1663,7 +1764,7 @@ type EnableTailnetLockResponse struct {
 
 func (x *EnableTailnetLockResponse) Reset() {
 	*x = EnableTailnetLockResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[34]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1675,7 +1776,7 @@ func (x *EnableTailnetLockResponse) String() string {
 func (*EnableTailnetLockResponse) ProtoMessage() {}
 
 func (x *EnableTailnetLockResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[34]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1688,7 +1789,7 @@ func (x *EnableTailnetLockResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableTailnetLockResponse.ProtoReflect.Descriptor instead.
 func (*EnableTailnetLockResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{34}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{36}
 }
 
 type DisableTailnetLockRequest struct {
@@ -1700,7 +1801,7 @@ type DisableTailnetLockRequest struct {
 
 func (x *DisableTailnetLockRequest) Reset() {
 	*x = DisableTailnetLockRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[35]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1712,7 +1813,7 @@ func (x *DisableTailnetLockRequest) String() string {
 func (*DisableTailnetLockRequest) ProtoMessage() {}
 
 func (x *DisableTailnetLockRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[35]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1725,7 +1826,7 @@ func (x *DisableTailnetLockRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableTailnetLockRequest.ProtoReflect.Descriptor instead.
 func (*DisableTailnetLockRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{35}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *DisableTailnetLockRequest) GetTailnetId() uint64 {
@@ -1743,7 +1844,7 @@ type DisableTailnetLockResponse struct {
 
 func (x *DisableTailnetLockResponse) Reset() {
 	*x = DisableTailnetLockResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[36]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1755,7 +1856,7 @@ func (x *DisableTailnetLockResponse) String() string {
 func (*DisableTailnetLockResponse) ProtoMessage() {}
 
 func (x *DisableTailnetLockResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[36]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1768,7 +1869,7 @@ func (x *DisableTailnetLockResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableTailnetLockResponse.ProtoReflect.Descriptor instead.
 func (*DisableTailnetLockResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{36}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{38}
 }
 
 // NodeLockState is one machine's standing under tailnet lock. A machine whose
@@ -1785,7 +1886,7 @@ type NodeLockState struct {
 
 func (x *NodeLockState) Reset() {
 	*x = NodeLockState{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[37]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1797,7 +1898,7 @@ func (x *NodeLockState) String() string {
 func (*NodeLockState) ProtoMessage() {}
 
 func (x *NodeLockState) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[37]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1810,7 +1911,7 @@ func (x *NodeLockState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeLockState.ProtoReflect.Descriptor instead.
 func (*NodeLockState) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{37}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *NodeLockState) GetMachineId() uint64 {
@@ -1843,7 +1944,7 @@ type GetTailnetLockStatusRequest struct {
 
 func (x *GetTailnetLockStatusRequest) Reset() {
 	*x = GetTailnetLockStatusRequest{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[38]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1855,7 +1956,7 @@ func (x *GetTailnetLockStatusRequest) String() string {
 func (*GetTailnetLockStatusRequest) ProtoMessage() {}
 
 func (x *GetTailnetLockStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[38]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1868,7 +1969,7 @@ func (x *GetTailnetLockStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTailnetLockStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetTailnetLockStatusRequest) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{38}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GetTailnetLockStatusRequest) GetTailnetId() uint64 {
@@ -1897,7 +1998,7 @@ type GetTailnetLockStatusResponse struct {
 
 func (x *GetTailnetLockStatusResponse) Reset() {
 	*x = GetTailnetLockStatusResponse{}
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[39]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1909,7 +2010,7 @@ func (x *GetTailnetLockStatusResponse) String() string {
 func (*GetTailnetLockStatusResponse) ProtoMessage() {}
 
 func (x *GetTailnetLockStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ionscale_v1_tailnets_proto_msgTypes[39]
+	mi := &file_ionscale_v1_tailnets_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1922,7 +2023,7 @@ func (x *GetTailnetLockStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTailnetLockStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetTailnetLockStatusResponse) Descriptor() ([]byte, []int) {
-	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{39}
+	return file_ionscale_v1_tailnets_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetTailnetLockStatusResponse) GetCapabilityEnabled() bool {
@@ -1997,7 +2098,7 @@ const file_ionscale_v1_tailnets_proto_rawDesc = "" +
 	"\x1dmachine_authorization_enabled\x18\b \x01(\bR\x1bmachineAuthorizationEnabled\x12\"\n" +
 	"\forganization\x18\t \x01(\tR\forganization\"G\n" +
 	"\x15CreateTailnetResponse\x12.\n" +
-	"\atailnet\x18\x01 \x01(\v2\x14.ionscale.v1.TailnetR\atailnet\"\xff\x02\n" +
+	"\atailnet\x18\x01 \x01(\v2\x14.ionscale.v1.TailnetR\atailnet\"\x91\x04\n" +
 	"\x14UpdateTailnetRequest\x12\x1d\n" +
 	"\n" +
 	"tailnet_id\x18\x01 \x01(\x04R\ttailnetId\x12\x1d\n" +
@@ -2006,17 +2107,26 @@ const file_ionscale_v1_tailnets_proto_rawDesc = "" +
 	"\n" +
 	"acl_policy\x18\x03 \x01(\tR\taclPolicy\x125\n" +
 	"\n" +
-	"dns_config\x18\x04 \x01(\v2\x16.ionscale.v1.DNSConfigR\tdnsConfig\x12<\n" +
-	"\x1aservice_collection_enabled\x18\x05 \x01(\bR\x18serviceCollectionEnabled\x120\n" +
-	"\x14file_sharing_enabled\x18\x06 \x01(\bR\x12fileSharingEnabled\x12\x1f\n" +
-	"\vssh_enabled\x18\a \x01(\bR\n" +
-	"sshEnabled\x12B\n" +
-	"\x1dmachine_authorization_enabled\x18\b \x01(\bR\x1bmachineAuthorizationEnabled\"G\n" +
+	"dns_config\x18\x04 \x01(\v2\x16.ionscale.v1.DNSConfigR\tdnsConfig\x12A\n" +
+	"\x1aservice_collection_enabled\x18\x05 \x01(\bH\x00R\x18serviceCollectionEnabled\x88\x01\x01\x125\n" +
+	"\x14file_sharing_enabled\x18\x06 \x01(\bH\x01R\x12fileSharingEnabled\x88\x01\x01\x12$\n" +
+	"\vssh_enabled\x18\a \x01(\bH\x02R\n" +
+	"sshEnabled\x88\x01\x01\x12G\n" +
+	"\x1dmachine_authorization_enabled\x18\b \x01(\bH\x03R\x1bmachineAuthorizationEnabled\x88\x01\x01\x12\x12\n" +
+	"\x04name\x18\t \x01(\tR\x04nameB\x1d\n" +
+	"\x1b_service_collection_enabledB\x17\n" +
+	"\x15_file_sharing_enabledB\x0e\n" +
+	"\f_ssh_enabledB \n" +
+	"\x1e_machine_authorization_enabled\"G\n" +
 	"\x15UpdateTailnetResponse\x12.\n" +
 	"\atailnet\x18\x01 \x01(\v2\x14.ionscale.v1.TailnetR\atailnet\"#\n" +
 	"\x11GetTailnetRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\"D\n" +
 	"\x12GetTailnetResponse\x12.\n" +
+	"\atailnet\x18\x01 \x01(\v2\x14.ionscale.v1.TailnetR\atailnet\"E\n" +
+	"\x1fGetTailnetByOrganizationRequest\x12\"\n" +
+	"\forganization\x18\x01 \x01(\tR\forganization\"R\n" +
+	" GetTailnetByOrganizationResponse\x12.\n" +
 	"\atailnet\x18\x01 \x01(\v2\x14.ionscale.v1.TailnetR\atailnet\"9\n" +
 	"\x13ListTailnetsRequest\x12\"\n" +
 	"\forganization\x18\x01 \x01(\tR\forganization\"F\n" +
@@ -2109,7 +2219,7 @@ func file_ionscale_v1_tailnets_proto_rawDescGZIP() []byte {
 	return file_ionscale_v1_tailnets_proto_rawDescData
 }
 
-var file_ionscale_v1_tailnets_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
+var file_ionscale_v1_tailnets_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
 var file_ionscale_v1_tailnets_proto_goTypes = []any{
 	(*Tailnet)(nil),                             // 0: ionscale.v1.Tailnet
 	(*CreateTailnetRequest)(nil),                // 1: ionscale.v1.CreateTailnetRequest
@@ -2118,55 +2228,58 @@ var file_ionscale_v1_tailnets_proto_goTypes = []any{
 	(*UpdateTailnetResponse)(nil),               // 4: ionscale.v1.UpdateTailnetResponse
 	(*GetTailnetRequest)(nil),                   // 5: ionscale.v1.GetTailnetRequest
 	(*GetTailnetResponse)(nil),                  // 6: ionscale.v1.GetTailnetResponse
-	(*ListTailnetsRequest)(nil),                 // 7: ionscale.v1.ListTailnetsRequest
-	(*ListTailnetsResponse)(nil),                // 8: ionscale.v1.ListTailnetsResponse
-	(*DeleteTailnetRequest)(nil),                // 9: ionscale.v1.DeleteTailnetRequest
-	(*DeleteTailnetResponse)(nil),               // 10: ionscale.v1.DeleteTailnetResponse
-	(*GetDERPMapRequest)(nil),                   // 11: ionscale.v1.GetDERPMapRequest
-	(*GetDERPMapResponse)(nil),                  // 12: ionscale.v1.GetDERPMapResponse
-	(*SetDERPMapRequest)(nil),                   // 13: ionscale.v1.SetDERPMapRequest
-	(*SetDERPMapResponse)(nil),                  // 14: ionscale.v1.SetDERPMapResponse
-	(*ResetDERPMapRequest)(nil),                 // 15: ionscale.v1.ResetDERPMapRequest
-	(*ResetDERPMapResponse)(nil),                // 16: ionscale.v1.ResetDERPMapResponse
-	(*EnableFileSharingRequest)(nil),            // 17: ionscale.v1.EnableFileSharingRequest
-	(*EnableFileSharingResponse)(nil),           // 18: ionscale.v1.EnableFileSharingResponse
-	(*DisableFileSharingRequest)(nil),           // 19: ionscale.v1.DisableFileSharingRequest
-	(*DisableFileSharingResponse)(nil),          // 20: ionscale.v1.DisableFileSharingResponse
-	(*EnableServiceCollectionRequest)(nil),      // 21: ionscale.v1.EnableServiceCollectionRequest
-	(*EnableServiceCollectionResponse)(nil),     // 22: ionscale.v1.EnableServiceCollectionResponse
-	(*DisableServiceCollectionRequest)(nil),     // 23: ionscale.v1.DisableServiceCollectionRequest
-	(*DisableServiceCollectionResponse)(nil),    // 24: ionscale.v1.DisableServiceCollectionResponse
-	(*EnableSSHRequest)(nil),                    // 25: ionscale.v1.EnableSSHRequest
-	(*EnableSSHResponse)(nil),                   // 26: ionscale.v1.EnableSSHResponse
-	(*DisableSSHRequest)(nil),                   // 27: ionscale.v1.DisableSSHRequest
-	(*DisableSSHResponse)(nil),                  // 28: ionscale.v1.DisableSSHResponse
-	(*EnableMachineAuthorizationRequest)(nil),   // 29: ionscale.v1.EnableMachineAuthorizationRequest
-	(*EnableMachineAuthorizationResponse)(nil),  // 30: ionscale.v1.EnableMachineAuthorizationResponse
-	(*DisableMachineAuthorizationRequest)(nil),  // 31: ionscale.v1.DisableMachineAuthorizationRequest
-	(*DisableMachineAuthorizationResponse)(nil), // 32: ionscale.v1.DisableMachineAuthorizationResponse
-	(*EnableTailnetLockRequest)(nil),            // 33: ionscale.v1.EnableTailnetLockRequest
-	(*EnableTailnetLockResponse)(nil),           // 34: ionscale.v1.EnableTailnetLockResponse
-	(*DisableTailnetLockRequest)(nil),           // 35: ionscale.v1.DisableTailnetLockRequest
-	(*DisableTailnetLockResponse)(nil),          // 36: ionscale.v1.DisableTailnetLockResponse
-	(*NodeLockState)(nil),                       // 37: ionscale.v1.NodeLockState
-	(*GetTailnetLockStatusRequest)(nil),         // 38: ionscale.v1.GetTailnetLockStatusRequest
-	(*GetTailnetLockStatusResponse)(nil),        // 39: ionscale.v1.GetTailnetLockStatusResponse
-	(*DNSConfig)(nil),                           // 40: ionscale.v1.DNSConfig
+	(*GetTailnetByOrganizationRequest)(nil),     // 7: ionscale.v1.GetTailnetByOrganizationRequest
+	(*GetTailnetByOrganizationResponse)(nil),    // 8: ionscale.v1.GetTailnetByOrganizationResponse
+	(*ListTailnetsRequest)(nil),                 // 9: ionscale.v1.ListTailnetsRequest
+	(*ListTailnetsResponse)(nil),                // 10: ionscale.v1.ListTailnetsResponse
+	(*DeleteTailnetRequest)(nil),                // 11: ionscale.v1.DeleteTailnetRequest
+	(*DeleteTailnetResponse)(nil),               // 12: ionscale.v1.DeleteTailnetResponse
+	(*GetDERPMapRequest)(nil),                   // 13: ionscale.v1.GetDERPMapRequest
+	(*GetDERPMapResponse)(nil),                  // 14: ionscale.v1.GetDERPMapResponse
+	(*SetDERPMapRequest)(nil),                   // 15: ionscale.v1.SetDERPMapRequest
+	(*SetDERPMapResponse)(nil),                  // 16: ionscale.v1.SetDERPMapResponse
+	(*ResetDERPMapRequest)(nil),                 // 17: ionscale.v1.ResetDERPMapRequest
+	(*ResetDERPMapResponse)(nil),                // 18: ionscale.v1.ResetDERPMapResponse
+	(*EnableFileSharingRequest)(nil),            // 19: ionscale.v1.EnableFileSharingRequest
+	(*EnableFileSharingResponse)(nil),           // 20: ionscale.v1.EnableFileSharingResponse
+	(*DisableFileSharingRequest)(nil),           // 21: ionscale.v1.DisableFileSharingRequest
+	(*DisableFileSharingResponse)(nil),          // 22: ionscale.v1.DisableFileSharingResponse
+	(*EnableServiceCollectionRequest)(nil),      // 23: ionscale.v1.EnableServiceCollectionRequest
+	(*EnableServiceCollectionResponse)(nil),     // 24: ionscale.v1.EnableServiceCollectionResponse
+	(*DisableServiceCollectionRequest)(nil),     // 25: ionscale.v1.DisableServiceCollectionRequest
+	(*DisableServiceCollectionResponse)(nil),    // 26: ionscale.v1.DisableServiceCollectionResponse
+	(*EnableSSHRequest)(nil),                    // 27: ionscale.v1.EnableSSHRequest
+	(*EnableSSHResponse)(nil),                   // 28: ionscale.v1.EnableSSHResponse
+	(*DisableSSHRequest)(nil),                   // 29: ionscale.v1.DisableSSHRequest
+	(*DisableSSHResponse)(nil),                  // 30: ionscale.v1.DisableSSHResponse
+	(*EnableMachineAuthorizationRequest)(nil),   // 31: ionscale.v1.EnableMachineAuthorizationRequest
+	(*EnableMachineAuthorizationResponse)(nil),  // 32: ionscale.v1.EnableMachineAuthorizationResponse
+	(*DisableMachineAuthorizationRequest)(nil),  // 33: ionscale.v1.DisableMachineAuthorizationRequest
+	(*DisableMachineAuthorizationResponse)(nil), // 34: ionscale.v1.DisableMachineAuthorizationResponse
+	(*EnableTailnetLockRequest)(nil),            // 35: ionscale.v1.EnableTailnetLockRequest
+	(*EnableTailnetLockResponse)(nil),           // 36: ionscale.v1.EnableTailnetLockResponse
+	(*DisableTailnetLockRequest)(nil),           // 37: ionscale.v1.DisableTailnetLockRequest
+	(*DisableTailnetLockResponse)(nil),          // 38: ionscale.v1.DisableTailnetLockResponse
+	(*NodeLockState)(nil),                       // 39: ionscale.v1.NodeLockState
+	(*GetTailnetLockStatusRequest)(nil),         // 40: ionscale.v1.GetTailnetLockStatusRequest
+	(*GetTailnetLockStatusResponse)(nil),        // 41: ionscale.v1.GetTailnetLockStatusResponse
+	(*DNSConfig)(nil),                           // 42: ionscale.v1.DNSConfig
 }
 var file_ionscale_v1_tailnets_proto_depIdxs = []int32{
-	40, // 0: ionscale.v1.Tailnet.dns_config:type_name -> ionscale.v1.DNSConfig
-	40, // 1: ionscale.v1.CreateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
+	42, // 0: ionscale.v1.Tailnet.dns_config:type_name -> ionscale.v1.DNSConfig
+	42, // 1: ionscale.v1.CreateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
 	0,  // 2: ionscale.v1.CreateTailnetResponse.tailnet:type_name -> ionscale.v1.Tailnet
-	40, // 3: ionscale.v1.UpdateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
+	42, // 3: ionscale.v1.UpdateTailnetRequest.dns_config:type_name -> ionscale.v1.DNSConfig
 	0,  // 4: ionscale.v1.UpdateTailnetResponse.tailnet:type_name -> ionscale.v1.Tailnet
 	0,  // 5: ionscale.v1.GetTailnetResponse.tailnet:type_name -> ionscale.v1.Tailnet
-	0,  // 6: ionscale.v1.ListTailnetsResponse.tailnet:type_name -> ionscale.v1.Tailnet
-	37, // 7: ionscale.v1.GetTailnetLockStatusResponse.nodes:type_name -> ionscale.v1.NodeLockState
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	0,  // 6: ionscale.v1.GetTailnetByOrganizationResponse.tailnet:type_name -> ionscale.v1.Tailnet
+	0,  // 7: ionscale.v1.ListTailnetsResponse.tailnet:type_name -> ionscale.v1.Tailnet
+	39, // 8: ionscale.v1.GetTailnetLockStatusResponse.nodes:type_name -> ionscale.v1.NodeLockState
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_ionscale_v1_tailnets_proto_init() }
@@ -2175,13 +2288,14 @@ func file_ionscale_v1_tailnets_proto_init() {
 		return
 	}
 	file_ionscale_v1_dns_proto_init()
+	file_ionscale_v1_tailnets_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ionscale_v1_tailnets_proto_rawDesc), len(file_ionscale_v1_tailnets_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   40,
+			NumMessages:   42,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -31,8 +31,8 @@ func TestWebLoginWithDomainFilterInIAMPolicy(t *testing.T) {
 		tailnet := s.CreateTailnet()
 		s.SetIAMPolicy(tailnet.Id, &ionscale.IAMPolicy{Filters: []string{"domain == localtest.me"}})
 
-		john := newTailscaleNodeAndLoginWithOIDC(t, s, "john@localtest.me")
-		jane := newTailscaleNodeAndLoginWithOIDC(t, s, "jane@localtest.me")
+		john := newTailscaleNodeAndLoginWithOIDC(t, s, "john")
+		jane := newTailscaleNodeAndLoginWithOIDC(t, s, "jane")
 
 		require.NoError(t, john.Check(tsn.HasTailnet(tailnet.Name)))
 		require.NoError(t, jane.Check(tsn.HasTailnet(tailnet.Name)))
@@ -50,8 +50,8 @@ func TestWebLoginWithSubsAndEmailsInIAMPolicy(t *testing.T) {
 		tailnet := s.CreateTailnet()
 		s.SetIAMPolicy(tailnet.Id, &ionscale.IAMPolicy{Subs: []string{"123"}, Emails: []string{"jane@localtest.me"}})
 
-		john := newTailscaleNodeAndLoginWithOIDC(t, s, "john@localtest.me")
-		jane := newTailscaleNodeAndLoginWithOIDC(t, s, "jane@localtest.me")
+		john := newTailscaleNodeAndLoginWithOIDC(t, s, "john")
+		jane := newTailscaleNodeAndLoginWithOIDC(t, s, "jane")
 
 		require.NoError(t, john.WaitFor(tsn.PeerCount(1)))
 		require.NoError(t, jane.WaitFor(tsn.PeerCount(1)))
@@ -66,11 +66,11 @@ func TestWebLoginWithUserAsTailnetAdmin(t *testing.T) {
 		tailnet := s.CreateTailnet()
 		s.SetIAMPolicy(tailnet.Id, &ionscale.IAMPolicy{
 			Filters: []string{"domain == localtest.me"},
-			Roles:   map[string]string{"john@localtest.me": "admin"},
+			Roles:   map[string]string{"john": "admin"},
 		})
 
-		john := newTailscaleNodeAndLoginWithOIDC(t, s, "john@localtest.me")
-		jane := newTailscaleNodeAndLoginWithOIDC(t, s, "jane@localtest.me")
+		john := newTailscaleNodeAndLoginWithOIDC(t, s, "john")
+		jane := newTailscaleNodeAndLoginWithOIDC(t, s, "jane")
 
 		require.NoError(t, john.Check(tsn.HasCapability(tailcfg.CapabilityAdmin)))
 		require.NoError(t, jane.Check(tsn.IsMissingCapability(tailcfg.CapabilityAdmin)))
@@ -115,7 +115,7 @@ func TestWebLoginAsTagOwner(t *testing.T) {
 
 		aclPolicy := defaults.DefaultACLPolicy()
 		aclPolicy.TagOwners = map[string][]string{
-			"tag:localtest": {"jane@localtest.me"},
+			"tag:localtest": {"jane"},
 		}
 
 		tailnet := s.CreateTailnet()
@@ -136,7 +136,7 @@ func TestWebLoginWithMachineAuthorizationRequired(t *testing.T) {
 		s.SetIAMPolicy(tailnet.Id, &ionscale.IAMPolicy{Filters: []string{"domain == localtest.me"}})
 		s.EnableMachineAutorization(tailnet.Id)
 
-		node := newTailscaleNodeAndLoginWithOIDC(t, s, "john@localtest.me")
+		node := newTailscaleNodeAndLoginWithOIDC(t, s, "john")
 
 		require.NoError(t, node.Check(tsn.NeedsMachineAuth()))
 

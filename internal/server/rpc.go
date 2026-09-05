@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/bufbuild/connect-go"
+	"github.com/jsiebens/ionscale/internal/config"
 	"github.com/jsiebens/ionscale/internal/domain"
 	"github.com/jsiebens/ionscale/internal/key"
 	"github.com/jsiebens/ionscale/internal/service"
@@ -9,7 +10,7 @@ import (
 	"net/http"
 )
 
-func NewRpcHandler(systemAdminKey *key.ServerPrivate, repository domain.Repository, handler apiconnect.IonscaleServiceHandler) (string, http.Handler) {
-	interceptors := connect.WithInterceptors(service.NewErrorInterceptor(), service.AuthenticationInterceptor(systemAdminKey, repository))
+func NewRpcHandler(systemAdminKey *key.ServerPrivate, serviceTokens []config.ServiceToken, repository domain.Repository, handler apiconnect.IonscaleServiceHandler) (string, http.Handler) {
+	interceptors := connect.WithInterceptors(service.NewErrorInterceptor(), service.AuthenticationInterceptor(systemAdminKey, repository, serviceTokens))
 	return apiconnect.NewIonscaleServiceHandler(handler, interceptors)
 }

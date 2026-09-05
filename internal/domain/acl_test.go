@@ -729,6 +729,47 @@ func TestWithUser(t *testing.T) {
 	assert.False(t, policy.IsValidPeer(src, createMachine("jane@example.com")))
 }
 
+// Login names come from the identity provider's preferred username and need
+// not contain an "@": a bare username must resolve as a user alias too, while
+// declared hosts and literal addresses keep their meaning.
+func TestWithUsernameAlias(t *testing.T) {
+	printer := createMachine("john")
+	policy := ACLPolicy{
+		ionscale.ACLPolicy{
+			Hosts: map[string]string{
+				"printer": printer.IPv4.String(),
+			},
+			ACLs: []ionscale.ACLEntry{
+				{
+					Action:      "accept",
+					Source:      []string{"jane"},
+					Destination: []string{"john:*", "printer:9100"},
+				},
+			},
+		},
+	}
+
+	jane := createMachine("jane")
+	assert.True(t, policy.IsValidPeer(jane, createMachine("john")))
+	assert.False(t, policy.IsValidPeer(jane, createMachine("john", "tag:web")))
+	assert.False(t, policy.IsValidPeer(jane, createMachine("johnny")))
+	assert.False(t, policy.IsValidPeer(createMachine("joe"), createMachine("john")))
+
+	// a machine whose user happens to be called like a host is not matched by the host alias
+	assert.False(t, policy.IsValidPeer(jane, createMachine("printer")))
+	assert.True(t, policy.IsValidPeer(jane, printer))
+
+	assert.False(t, policy.isUserAlias("*"))
+	assert.False(t, policy.isUserAlias("autogroup:member"))
+	assert.False(t, policy.isUserAlias("group:admins"))
+	assert.False(t, policy.isUserAlias("tag:web"))
+	assert.False(t, policy.isUserAlias("printer"))
+	assert.False(t, policy.isUserAlias("100.64.0.1"))
+	assert.False(t, policy.isUserAlias("10.0.0.0/8"))
+	assert.True(t, policy.isUserAlias("jane"))
+	assert.True(t, policy.isUserAlias("jane@example.com"))
+}
+
 func TestWithGroup(t *testing.T) {
 	policy := ACLPolicy{
 		ionscale.ACLPolicy{

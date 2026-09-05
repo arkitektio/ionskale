@@ -110,7 +110,7 @@ func (a ACLPolicy) expandSSHSrcAlias(m *Machine, alias string, dstUser *User) []
 			return m.IPs()
 		}
 
-		if strings.Contains(alias, "@") && m.HasUser(alias) {
+		if a.isUserAlias(alias) && m.HasUser(alias) {
 			return m.IPs()
 		}
 
@@ -125,7 +125,7 @@ func (a ACLPolicy) expandSSHSrcAlias(m *Machine, alias string, dstUser *User) []
 		return m.IPs()
 	}
 
-	if strings.Contains(alias, "@") && !m.HasTags() && m.HasUser(alias) {
+	if a.machineOwnedBy(alias, m) {
 		return m.IPs()
 	}
 

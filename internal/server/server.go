@@ -172,7 +172,7 @@ func Start(ctx context.Context, c *config.Config) error {
 	)
 
 	rpcService := service.NewService(c, authProvider, dnsProvider, repository, sessionManager)
-	rpcPath, rpcHandler := NewRpcHandler(serverKey.SystemAdminKey, repository, rpcService)
+	rpcPath, rpcHandler := NewRpcHandler(serverKey.SystemAdminKey, c.Auth.ServiceTokens, repository, rpcService)
 
 	metricsMux := echo.New()
 	metricsMux.GET("/metrics", echoprometheus.NewHandler())
@@ -187,6 +187,7 @@ func Start(ctx context.Context, c *config.Config) error {
 	webMux.Any("/", handlers.IndexHandler(http.StatusOK))
 	webMux.POST(rpcPath+"*", echo.WrapHandler(rpcHandler))
 	webMux.GET("/version", handlers.Version)
+	webMux.GET("/healthz", handlers.Health(db))
 	webMux.GET("/key", handlers.KeyHandler(serverKey))
 	webMux.POST("/ts2021", noiseHandlers.Upgrade)
 	webMux.GET("/.well-known/jwks", oidcConfigHandlers.Jwks)

@@ -40,16 +40,23 @@ message CreateTailnetResponse {
   Tailnet tailnet = 1;
 }
 
+// UpdateTailnetRequest is a partial update: policies and the DNS config are
+// replaced when non-empty, the feature flags only when set, and the tailnet is
+// renamed when name is non-empty.
 message UpdateTailnetRequest {
   uint64 tailnet_id = 1;
   string iam_policy = 2;
   string acl_policy = 3;
   DNSConfig dns_config = 4;
 
-  bool service_collection_enabled = 5;
-  bool file_sharing_enabled = 6;
-  bool ssh_enabled = 7;
-  bool machine_authorization_enabled = 8;
+  optional bool service_collection_enabled = 5;
+  optional bool file_sharing_enabled = 6;
+  optional bool ssh_enabled = 7;
+  optional bool machine_authorization_enabled = 8;
+
+  // new name for the tailnet (system admin only); changes the MagicDNS suffix
+  // of every machine in it
+  string name = 9;
 }
 
 message UpdateTailnetResponse {
@@ -61,6 +68,14 @@ message GetTailnetRequest {
 }
 
 message GetTailnetResponse {
+  Tailnet tailnet = 1;
+}
+
+message GetTailnetByOrganizationRequest {
+  string organization = 1;
+}
+
+message GetTailnetByOrganizationResponse {
   Tailnet tailnet = 1;
 }
 

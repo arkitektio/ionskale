@@ -22,10 +22,12 @@ const (
 )
 
 type User struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Role  string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	// the account's external id (the OIDC subject); empty for service users
+	ExternalId    string `protobuf:"bytes,4,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -77,6 +79,13 @@ func (x *User) GetName() string {
 func (x *User) GetRole() string {
 	if x != nil {
 		return x.Role
+	}
+	return ""
+}
+
+func (x *User) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
 	}
 	return ""
 }
@@ -353,11 +362,13 @@ var File_ionscale_v1_users_proto protoreflect.FileDescriptor
 
 const file_ionscale_v1_users_proto_rawDesc = "" +
 	"\n" +
-	"\x17ionscale/v1/users.proto\x12\vionscale.v1\">\n" +
+	"\x17ionscale/v1/users.proto\x12\vionscale.v1\"_\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
-	"\x04role\x18\x03 \x01(\tR\x04role\"1\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x1f\n" +
+	"\vexternal_id\x18\x04 \x01(\tR\n" +
+	"externalId\"1\n" +
 	"\x10ListUsersRequest\x12\x1d\n" +
 	"\n" +
 	"tailnet_id\x18\x01 \x01(\x04R\ttailnetId\"<\n" +

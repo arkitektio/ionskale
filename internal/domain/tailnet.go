@@ -32,6 +32,7 @@ type TailnetRepository interface {
 	GetTailnetByName(ctx context.Context, name string) (*Tailnet, error)
 	ListTailnets(ctx context.Context) ([]Tailnet, error)
 	ListTailnetsByOrganization(ctx context.Context, organization string) ([]Tailnet, error)
+	GetTailnetByOrganization(ctx context.Context, organization string) (*Tailnet, error)
 	DeleteTailnet(ctx context.Context, id uint64) error
 }
 
@@ -88,6 +89,25 @@ func (r *repository) GetTailnet(ctx context.Context, id uint64) (*Tailnet, error
 func (r *repository) GetTailnetByName(ctx context.Context, name string) (*Tailnet, error) {
 	var t Tailnet
 	tx := r.withContext(ctx).Take(&t, "name = ?", name)
+
+	if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return &t, nil
+}
+
+// GetTailnetByOrganization returns the tailnet bound to an organization, or nil
+// when there is none. CreateTailnet enforces at most one tailnet per
+// organization; should legacy data hold several, the oldest wins so the answer
+// is stable.
+func (r *repository) GetTailnetByOrganization(ctx context.Context, organization string) (*Tailnet, error) {
+	var t Tailnet
+	tx := r.withContext(ctx).Where("organization = ?", organization).Order("id asc").Take(&t)
 
 	if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
