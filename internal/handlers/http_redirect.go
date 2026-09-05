@@ -11,6 +11,10 @@ func httpsRedirectSkipper(c config.Tls) func(ctx echo.Context) bool {
 		if ctx.Request().Method == "POST" && ctx.Request().RequestURI == "/ts2021" {
 			return true
 		}
+		// health probes usually hit the plain-http port directly
+		if ctx.Request().Method == "GET" && ctx.Request().URL.Path == "/healthz" {
+			return true
+		}
 		return !c.ForceHttps
 	}
 }

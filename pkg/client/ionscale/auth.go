@@ -27,6 +27,13 @@ func LoadClientAuth(addr string, systemAdminKey string) (ClientAuth, error) {
 		return systemAdminTokenSession{key: *k, tid: tid}, nil
 	}
 
+	// a static bearer token (typically a svc_ service token from the server
+	// configuration) lets scripts use the CLI without a keyring
+	if staticToken := os.Getenv("IONSCALE_TOKEN"); staticToken != "" {
+		tid := getEnvUint64("IONSCALE_SYSTEM_ADMIN_DEFAULT_TAILNET_ID", 0)
+		return defaultSession{TK: staticToken, TID: tid}, nil
+	}
+
 	ring, err := openKeyring()
 	if err != nil {
 		return nil, err

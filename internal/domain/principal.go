@@ -4,6 +4,9 @@ type Principal struct {
 	SystemRole SystemRole
 	User       *User
 	UserRole   UserRole
+	// ServiceName is set when the caller authenticated with a static service
+	// token; such principals are system admins acting on behalf of a service.
+	ServiceName string
 }
 
 func (p Principal) IsSystemAdmin() bool {

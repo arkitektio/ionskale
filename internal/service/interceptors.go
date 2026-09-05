@@ -2,8 +2,11 @@ package service
 
 import (
 	"context"
+	"crypto/sha256"
+	"crypto/subtle"
 	"fmt"
 	"github.com/bufbuild/connect-go"
+	"github.com/jsiebens/ionscale/internal/config"
 	"github.com/jsiebens/ionscale/internal/domain"
 	"github.com/jsiebens/ionscale/internal/key"
 	"github.com/jsiebens/ionscale/internal/token"
@@ -27,7 +30,44 @@ func CurrentPrincipal(ctx context.Context) domain.Principal {
 	return p.(domain.Principal)
 }
 
-func AuthenticationInterceptor(systemAdminKey *key.ServerPrivate, repository domain.Repository) connect.UnaryInterceptorFunc {
+// serviceTokens holds the configured static service tokens, keyed by the
+// sha256 of their value so lookups compare fixed-size digests in constant time.
+type serviceTokens struct {
+	entries []serviceTokenEntry
+}
+
+type serviceTokenEntry struct {
+	name   string
+	digest [sha256.Size]byte
+}
+
+func newServiceTokens(tokens []config.ServiceToken) *serviceTokens {
+	s := &serviceTokens{}
+	for _, t := range tokens {
+		s.entries = append(s.entries, serviceTokenEntry{name: t.Name, digest: sha256.Sum256([]byte(t.Token))})
+	}
+	return s
+}
+
+// lookup returns the service name for a presented token, or false when no
+// configured token matches. Every entry is compared so timing does not reveal
+// which (if any) token matched.
+func (s *serviceTokens) lookup(value string) (string, bool) {
+	if s == nil {
+		return "", false
+	}
+	digest := sha256.Sum256([]byte(value))
+	name, found := "", false
+	for _, e := range s.entries {
+		if subtle.ConstantTimeCompare(digest[:], e.digest[:]) == 1 {
+			name, found = e.name, true
+		}
+	}
+	return name, found
+}
+
+func AuthenticationInterceptor(systemAdminKey *key.ServerPrivate, repository domain.Repository, tokens []config.ServiceToken) connect.UnaryInterceptorFunc {
+	svcTokens := newServiceTokens(tokens)
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			name := req.Spec().Procedure
@@ -39,7 +79,7 @@ func AuthenticationInterceptor(systemAdminKey *key.ServerPrivate, repository dom
 			authorizationHeader := req.Header().Get("Authorization")
 			bearerToken := strings.TrimPrefix(authorizationHeader, "Bearer ")
 
-			if principal := exchangeToken(ctx, systemAdminKey, repository, bearerToken); principal != nil {
+			if principal := exchangeToken(ctx, systemAdminKey, svcTokens, repository, bearerToken); principal != nil {
 				return next(context.WithValue(ctx, principalKey, *principal), req)
 			}
 
@@ -48,7 +88,7 @@ func AuthenticationInterceptor(systemAdminKey *key.ServerPrivate, repository dom
 	}
 }
 
-func exchangeToken(ctx context.Context, systemAdminKey *key.ServerPrivate, repository domain.Repository, value string) *domain.Principal {
+func exchangeToken(ctx context.Context, systemAdminKey *key.ServerPrivate, svcTokens *serviceTokens, repository domain.Repository, value string) *domain.Principal {
 	if len(value) == 0 {
 		return nil
 	}
@@ -58,6 +98,16 @@ func exchangeToken(ctx context.Context, systemAdminKey *key.ServerPrivate, repos
 		if err == nil {
 			return &domain.Principal{SystemRole: domain.SystemRoleAdmin}
 		}
+	}
+
+	// service tokens are only ever matched against the configuration; a
+	// svc_-prefixed value that does not match is rejected without touching
+	// the database
+	if strings.HasPrefix(value, config.ServiceTokenPrefix) {
+		if name, ok := svcTokens.lookup(value); ok {
+			return &domain.Principal{SystemRole: domain.SystemRoleAdmin, ServiceName: name}
+		}
+		return nil
 	}
 
 	apiKey, err := repository.LoadApiKey(ctx, value)

@@ -232,3 +232,61 @@ stun_public_addr: "ionscale.localtest.me:3478"
 	require.NoError(t, err)
 	require.Equal(t, 180*24*time.Hour, MachineKeyExpiry())
 }
+
+func TestValidateServiceTokens(t *testing.T) {
+	valid := "svc_" + "0123456789abcdef0123456789abcdef"
+
+	cases := []struct {
+		name   string
+		tokens []ServiceToken
+		ok     bool
+	}{
+		{name: "none", tokens: nil, ok: true},
+		{name: "valid", tokens: []ServiceToken{{Name: "lok", Token: valid}}, ok: true},
+		{name: "two", tokens: []ServiceToken{{Name: "lok", Token: valid}, {Name: "ci", Token: valid + "x"}}, ok: true},
+		{name: "missing name", tokens: []ServiceToken{{Name: " ", Token: valid}}, ok: false},
+		{name: "duplicate name", tokens: []ServiceToken{{Name: "lok", Token: valid}, {Name: "lok", Token: valid + "x"}}, ok: false},
+		{name: "duplicate token", tokens: []ServiceToken{{Name: "lok", Token: valid}, {Name: "ci", Token: valid}}, ok: false},
+		{name: "wrong prefix", tokens: []ServiceToken{{Name: "lok", Token: "sk_0123456789abcdef0123456789abcdef"}}, ok: false},
+		{name: "too short", tokens: []ServiceToken{{Name: "lok", Token: "svc_short"}}, ok: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateServiceTokens(tc.tokens)
+			if tc.ok {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestLoadConfigServiceTokens(t *testing.T) {
+	tempFile, err := os.CreateTemp("", "config-*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+
+	require.NoError(t, os.Setenv("IONSCALE_LOK_SERVICE_TOKEN", "svc_0123456789abcdef0123456789abcdef"))
+	defer os.Unsetenv("IONSCALE_LOK_SERVICE_TOKEN")
+
+	yamlContent := `
+public_addr: "ionscale.localtest.me:443"
+stun_public_addr: "ionscale.localtest.me:3478"
+
+auth:
+  service_tokens:
+    - name: lok
+      token: ${IONSCALE_LOK_SERVICE_TOKEN}
+`
+	_, err = tempFile.Write([]byte(yamlContent))
+	require.NoError(t, err)
+	tempFile.Close()
+
+	config, err := LoadConfig(tempFile.Name())
+	require.NoError(t, err)
+	require.Len(t, config.Auth.ServiceTokens, 1)
+	require.Equal(t, "lok", config.Auth.ServiceTokens[0].Name)
+	require.Equal(t, "svc_0123456789abcdef0123456789abcdef", config.Auth.ServiceTokens[0].Token)
+}

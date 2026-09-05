@@ -219,6 +219,28 @@ type Auth struct {
 	Provider          AuthProvider      `json:"provider,omitempty"`
 	SystemAdminPolicy SystemAdminPolicy `json:"system_admins"`
 	Organizations     Organizations     `json:"organizations,omitempty"`
+	// ServiceTokens are static bearer tokens granting system-admin to
+	// non-interactive callers (an identity provider syncing tailnets, a
+	// reconciliation job). Unlike system admin keys they need no client-side
+	// sealing, so any HTTP client can use them.
+	ServiceTokens []ServiceToken `json:"service_tokens,omitempty"`
+}
+
+const (
+	// ServiceTokenPrefix marks a static service token; the interceptor never
+	// looks such a value up in the database.
+	ServiceTokenPrefix = "svc_"
+	// minServiceTokenSecretLength is the minimum length of the part after the
+	// prefix; 32 characters of a random alphabet is comfortably beyond brute
+	// force.
+	minServiceTokenSecretLength = 32
+)
+
+// ServiceToken names a static credential; the name shows up as the audit actor
+// (service:<name>) so tokens can be told apart and rotated individually.
+type ServiceToken struct {
+	Name  string `json:"name"`
+	Token string `json:"token"`
 }
 
 // Organizations enables organization-scoped tailnets. When a claim is
@@ -306,6 +328,10 @@ func (c *Config) Validate() (*Config, error) {
 		}
 	}
 
+	if err := validateServiceTokens(c.Auth.ServiceTokens); err != nil {
+		return nil, err
+	}
+
 	publicWebUrl, webHost, webPort, err := validatePublicAddr(c.PublicAddr)
 	if err != nil {
 		return nil, fmt.Errorf("web public addr: %w", err)
@@ -326,6 +352,32 @@ func (c *Config) Validate() (*Config, error) {
 	}
 
 	return c, nil
+}
+
+func validateServiceTokens(tokens []ServiceToken) error {
+	names := map[string]struct{}{}
+	values := map[string]struct{}{}
+	for i, st := range tokens {
+		if strings.TrimSpace(st.Name) == "" {
+			return fmt.Errorf("auth.service_tokens[%d]: name is required", i)
+		}
+		if _, dup := names[st.Name]; dup {
+			return fmt.Errorf("auth.service_tokens: duplicate name %q", st.Name)
+		}
+		names[st.Name] = struct{}{}
+
+		if !strings.HasPrefix(st.Token, ServiceTokenPrefix) {
+			return fmt.Errorf("auth.service_tokens[%s]: token must start with %q", st.Name, ServiceTokenPrefix)
+		}
+		if len(st.Token)-len(ServiceTokenPrefix) < minServiceTokenSecretLength {
+			return fmt.Errorf("auth.service_tokens[%s]: token must have at least %d characters after the %q prefix", st.Name, minServiceTokenSecretLength, ServiceTokenPrefix)
+		}
+		if _, dup := values[st.Token]; dup {
+			return fmt.Errorf("auth.service_tokens[%s]: token is already used by another service", st.Name)
+		}
+		values[st.Token] = struct{}{}
+	}
+	return nil
 }
 
 func (c *Config) CreateUrl(format string, a ...interface{}) string {
