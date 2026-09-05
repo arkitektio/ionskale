@@ -377,7 +377,7 @@ func (a ACLPolicy) translateAliasToMachineIPs(alias string, m *Machine, f func(s
 		return autogroupInternetRanges()
 	}
 
-	if strings.Contains(alias, "@") && !m.HasTags() && m.HasUser(alias) {
+	if a.machineOwnedBy(alias, m) {
 		return m.IPs()
 	}
 

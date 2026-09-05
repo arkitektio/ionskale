@@ -37,6 +37,16 @@ In this example:
 - Admins have full access to all resources
 - Only admin@example.com can assign the web and database tags to machines
 
+### Referring to users
+
+Users are referred to by their **login name**: the `preferred_username` claim of
+the identity provider, falling back to the `name` claim when there is none. It
+need not look like an email address -- with an identity provider that issues
+plain usernames the same policy reads `"admins": ["admin"]`. Any alias that is
+not a wildcard, `autogroup:…`, `group:…`, `tag:…`, a declared host or a literal
+IP address or CIDR is treated as a login name. The same login names are used as
+keys in the IAM policy's `roles` map.
+
 ## Managing ACL policies
 
 You can view and update the ACL policy for a tailnet using the ionscale CLI:

@@ -45,6 +45,37 @@ func (a *ACLPolicy) Equal(x *ACLPolicy) bool {
 	return reflect.DeepEqual(a, x)
 }
 
+// isUserAlias reports whether an ACL alias names a user. Login names are the
+// identity provider's preferred username, so they need not look like an email
+// address: anything that is not a wildcard, an autogroup, a group, a tag, a
+// declared host or a literal address is taken to be a user.
+func (a ACLPolicy) isUserAlias(alias string) bool {
+	if alias == "" || alias == "*" {
+		return false
+	}
+	for _, prefix := range []string{"autogroup:", "group:", "tag:"} {
+		if strings.HasPrefix(alias, prefix) {
+			return false
+		}
+	}
+	if _, ok := a.Hosts[alias]; ok {
+		return false
+	}
+	if _, err := netip.ParseAddr(alias); err == nil {
+		return false
+	}
+	if _, err := netip.ParsePrefix(alias); err == nil {
+		return false
+	}
+	return true
+}
+
+// machineOwnedBy reports whether m is an untagged machine of the user the alias
+// names.
+func (a ACLPolicy) machineOwnedBy(alias string, m *Machine) bool {
+	return a.isUserAlias(alias) && !m.HasTags() && m.HasUser(alias)
+}
+
 func (a ACLPolicy) FindAutoApprovedIPs(routableIPs []netip.Prefix, tags []string, u *User) []netip.Prefix {
 	if a.AutoApprovers == nil || len(routableIPs) == 0 {
 		return nil
@@ -149,7 +180,7 @@ func (a ACLPolicy) NodeCapabilities(m *Machine) []tailcfg.NodeCapability {
 				return true
 			}
 
-			if strings.Contains(alias, "@") && !m.HasTags() && m.HasUser(alias) {
+			if a.machineOwnedBy(alias, m) {
 				return true
 			}
 
