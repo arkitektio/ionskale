@@ -236,6 +236,7 @@ func ToNode(capVer tailcfg.CapabilityVersion, m *domain.Machine, tailnet *domain
 	if m.KeyExpiryDisabled {
 		n.KeyExpiry = time.Time{}
 	}
+	n.Expired = m.IsExpired()
 
 	n.Online = &connected
 	if !connected && m.LastSeen != nil {

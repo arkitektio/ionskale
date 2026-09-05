@@ -100,10 +100,20 @@ func (h *PollNetMapper) CreateMapResponse(ctx context.Context, delta bool) (*Map
 	var sshPolicy *tailcfg.SSHPolicy
 	syncedPeerIDs := map[uint64]bool{}
 
+	// a quarantined machine (expired key, or awaiting machine authorization)
+	// is cut off from the tailnet: it learns about no peers and no peer learns
+	// about it. PeersRemoved is still computed so the node drops peers it
+	// previously knew.
+	quarantined := m.IsQuarantined(&tailnet)
+
 	if !h.req.OmitPeers {
 		candidatePeers, err := h.repository.ListMachinePeers(ctx, m.TailnetID, m.ID)
 		if err != nil {
 			return nil, err
+		}
+		candidatePeers = filterQuarantined(candidatePeers, &tailnet)
+		if quarantined {
+			candidatePeers = nil
 		}
 
 		syncedUserIDs := map[tailcfg.UserID]bool{user.ID: true}
@@ -131,10 +141,12 @@ func (h *PollNetMapper) CreateMapResponse(ctx context.Context, delta bool) (*Map
 			removedPeers = append(removedPeers, tailcfg.NodeID(p))
 		}
 
-		filterRules = policies.BuildFilterRules(candidatePeers, m)
+		if !quarantined {
+			filterRules = policies.BuildFilterRules(candidatePeers, m)
 
-		if tailnet.SSHEnabled && hostinfo.TailscaleSSHEnabled() {
-			sshPolicy = policies.BuildSSHPolicy(candidatePeers, m)
+			if tailnet.SSHEnabled && hostinfo.TailscaleSSHEnabled() {
+				sshPolicy = policies.BuildSSHPolicy(candidatePeers, m)
+			}
 		}
 	}
 
@@ -193,6 +205,18 @@ func (h *PollNetMapper) CreateMapResponse(ctx context.Context, delta bool) (*Map
 	h.prevTKAChecksum = tkaChecksum
 
 	return &MapResponse{MapResponse: mapResponse, PacketFilter: filterRules}, nil
+}
+
+// filterQuarantined drops the machines that must not be visible to peers.
+func filterQuarantined(machines domain.Machines, tailnet *domain.Tailnet) domain.Machines {
+	result := make(domain.Machines, 0, len(machines))
+	for _, m := range machines {
+		if m.IsQuarantined(tailnet) {
+			continue
+		}
+		result = append(result, m)
+	}
+	return result
 }
 
 type primaryRoutesCollector struct {

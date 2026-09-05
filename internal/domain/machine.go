@@ -29,6 +29,7 @@ type MachineRepository interface {
 	DeleteMachineByUser(ctx context.Context, userID uint64) error
 	ListMachinePeers(ctx context.Context, tailnetID uint64, machineID uint64) (Machines, error)
 	ListInactiveEphemeralMachines(ctx context.Context, checkpoint time.Time) (Machines, error)
+	ListMachinesExpiredBetween(ctx context.Context, from, to time.Time) (Machines, error)
 	SetMachineLastSeen(ctx context.Context, machineID uint64) error
 }
 
@@ -86,6 +87,19 @@ func (m *Machine) IPs() []string {
 
 func (m *Machine) IsExpired() bool {
 	return !m.KeyExpiryDisabled && !m.ExpiresAt.IsZero() && m.ExpiresAt.Before(time.Now())
+}
+
+// IsQuarantined reports whether the machine must be kept apart from the rest
+// of the tailnet: its node key expired, or the tailnet requires machine
+// authorization and nobody approved it yet. Quarantined machines are neither
+// offered as peers nor covered by packet filters, so revoking access or
+// letting a key lapse takes effect at the next netmap push instead of being
+// left to the clients' own key-expiry handling.
+func (m *Machine) IsQuarantined(t *Tailnet) bool {
+	if m.IsExpired() {
+		return true
+	}
+	return t != nil && t.MachineAuthorizationEnabled && !m.Authorized
 }
 
 func (m *Machine) HasIP(v netip.Addr) bool {
@@ -536,6 +550,22 @@ func (r *repository) ListMachinePeers(ctx context.Context, tailnetID uint64, mac
 		Joins("User.Account").
 		Where("machines.tailnet_id = ? AND machines.id <> ?", tailnetID, machineID).
 		Order("machines.id asc").
+		Find(&machines)
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return machines, nil
+}
+
+// ListMachinesExpiredBetween returns the machines whose node key expired in
+// (from, to], i.e. whose expiry the periodic sweeper has not yet acted on.
+func (r *repository) ListMachinesExpiredBetween(ctx context.Context, from, to time.Time) (Machines, error) {
+	var machines = []Machine{}
+
+	tx := r.withContext(ctx).
+		Where("key_expiry_disabled = ? AND expires_at > ? AND expires_at <= ?", false, from.UTC(), to.UTC()).
 		Find(&machines)
 
 	if tx.Error != nil {

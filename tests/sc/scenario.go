@@ -80,9 +80,13 @@ func (s *Scenario) AuthorizeMachines(tailnetID uint64) {
 func (s *Scenario) ExpireMachines(tailnetID uint64) {
 	machines := s.ListMachines(tailnetID)
 	for _, m := range machines {
-		_, err := s.ionscaleClient.ExpireMachine(context.Background(), connect.NewRequest(&api.ExpireMachineRequest{MachineId: m.Id}))
-		require.NoError(s.t, err)
+		s.ExpireMachine(m.Id)
 	}
+}
+
+func (s *Scenario) ExpireMachine(machineID uint64) {
+	_, err := s.ionscaleClient.ExpireMachine(context.Background(), connect.NewRequest(&api.ExpireMachineRequest{MachineId: machineID}))
+	require.NoError(s.t, err)
 }
 
 func (s *Scenario) FindMachine(tailnetID uint64, name string) (uint64, error) {

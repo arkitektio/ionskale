@@ -250,6 +250,8 @@ tailnets:
     }
 ```
 
+A machine whose node key has expired, or that still awaits approval in a tailnet with machine authorization enabled, is quarantined server-side: it is removed from every peer's netmap and receives no peers and an empty packet filter itself, rather than merely being flagged as expired. A background sweep (every minute) pushes the update when a key lapses on its own; `ionscale machines expire` and `authorize` push it immediately. Machines with key expiry disabled are never quarantined by expiry.
+
 Security-relevant actions — logins (and refusals), tailnet lifecycle, IAM/ACL changes, key issuance and revocations — are emitted as structured events on the `audit` logger; with `logging.format: json` they can be filtered and shipped by the `logger` field.
 
 ### Tailnet lock
