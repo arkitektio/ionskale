@@ -88,6 +88,68 @@ func TestTailnetLock(t *testing.T) {
 	})
 }
 
+// TestTailnetLockReplaceTailnet is the way out of a lock nobody can administer
+// any more (the signing node and every disablement secret lost): the tailnet
+// is deleted and recreated under the same name, and the old nodes, which still
+// hold the authority locally, rejoin it with a fresh auth key. The new
+// tailnet has no disablement secret to hand them, so they stay locked out
+// until `tailscale lock local-disable` drops the stale authority on each.
+func TestTailnetLockReplaceTailnet(t *testing.T) {
+	sc.Run(t, func(s *sc.Scenario) {
+		tailnet := s.CreateTailnet()
+		s.EnableTailnetLock(tailnet.Id)
+		authKey := s.CreateAuthKey(tailnet.Id, false)
+
+		initiator := s.NewTailscaleNode()
+		require.NoError(t, initiator.Up(authKey))
+		statusOut, _, err := initiator.Tailscale("lock", "status")
+		require.NoError(t, err)
+		tlpub := tlpubRegex.FindString(statusOut)
+		require.NotEmpty(t, tlpub, "no tailnet lock key in: %s", statusOut)
+
+		// the disablement secret printed here is deliberately thrown away
+		initOut, initErr, err := initiator.Tailscale("lock", "init", "--confirm", "--gen-disablements=1", tlpub)
+		require.NoError(t, err, "lock init failed: %s %s", initOut, initErr)
+		require.NoError(t, waitForLockStatus(initiator, "Tailnet lock is ENABLED"))
+
+		joiner := s.NewTailscaleNode()
+		_, _, err = joiner.Tailscale("up", "--login-server", "https://ionscale", "--authkey", authKey)
+		require.NoError(t, err)
+		require.NoError(t, waitForLockStatus(joiner, "LOCKED OUT"))
+		lockedStatus, _, err := joiner.Tailscale("lock", "status")
+		require.NoError(t, err)
+		signArgs := signArgsRegex.FindStringSubmatch(lockedStatus)
+		require.Len(t, signArgs, 3, "no sign command in locked-out status: %s", lockedStatus)
+		_, _, err = initiator.Tailscale("lock", "sign", signArgs[1], signArgs[2])
+		require.NoError(t, err)
+		require.NoError(t, joiner.WaitFor(tsn.PeerCount(1)))
+
+		// replace the tailnet
+		s.DeleteTailnet(tailnet.Id)
+		replacement := s.CreateNamedTailnet(tailnet.Name)
+		freshKey := s.CreateAuthKey(replacement.Id, false)
+
+		for _, node := range []*tsn.TailscaleNode{initiator, joiner} {
+			upOut, upErr, err := node.Tailscale("up", "--login-server", "https://ionscale", "--authkey", freshKey, "--force-reauth")
+			require.NoError(t, err, "rejoin failed: %s %s", upOut, upErr)
+		}
+
+		require.Len(t, s.ListMachines(replacement.Id), 2)
+		require.NoError(t, waitForLockStatus(joiner, "LOCKED OUT"))
+
+		for _, node := range []*tsn.TailscaleNode{initiator, joiner} {
+			out, errOut, err := node.Tailscale("lock", "local-disable")
+			require.NoError(t, err, "local-disable failed: %s %s", out, errOut)
+		}
+
+		require.NoError(t, waitForLockStatus(initiator, "Tailnet lock is NOT enabled"))
+		require.NoError(t, waitForLockStatus(joiner, "Tailnet lock is NOT enabled"))
+		require.NoError(t, initiator.WaitFor(tsn.PeerCount(1)))
+		require.NoError(t, joiner.WaitFor(tsn.PeerCount(1)))
+		require.NoError(t, initiator.Ping(joiner.IPv4()))
+	})
+}
+
 // waitForLockStatus polls `tailscale lock status` until its output contains
 // marker. Matching is case-insensitive: the CLI wording changed casing across
 // versions (e.g. "Tailnet lock is ENABLED" vs "Tailnet Lock is ENABLED").

@@ -54,6 +54,19 @@ func (s *Scenario) CreateTailnet() *api.Tailnet {
 	return createTailnetResponse.Msg.GetTailnet()
 }
 
+// CreateNamedTailnet creates a tailnet under a given name, e.g. to recreate
+// one that was deleted.
+func (s *Scenario) CreateNamedTailnet(name string) *api.Tailnet {
+	createTailnetResponse, err := s.ionscaleClient.CreateTailnet(context.Background(), connect.NewRequest(&api.CreateTailnetRequest{Name: name}))
+	require.NoError(s.t, err)
+	return createTailnetResponse.Msg.GetTailnet()
+}
+
+func (s *Scenario) DeleteTailnet(tailnetID uint64) {
+	_, err := s.ionscaleClient.DeleteTailnet(context.Background(), connect.NewRequest(&api.DeleteTailnetRequest{TailnetId: tailnetID, Force: true}))
+	require.NoError(s.t, err)
+}
+
 func (s *Scenario) CreateAuthKey(tailnetID uint64, ephemeral bool, tags ...string) string {
 	if len(tags) == 0 {
 		tags = []string{"tag:test"}
@@ -350,6 +363,12 @@ func prepareDockerPoolAndImages() {
 	}
 
 	pool, _ = dockertest.NewPool("")
+
+	// Docker daemons that dropped the legacy build API refuse the builds
+	// below; build the two images with `docker build` and set this instead.
+	if os.Getenv("IONSCALE_TESTS_PREBUILT") == "true" {
+		return
+	}
 
 	buildOpts := &dockertest.BuildOptions{
 		ContextDir: "../",

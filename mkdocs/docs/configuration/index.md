@@ -272,6 +272,8 @@ tailscale lock disable disablement-secret:<secret>             # shut the author
 
 Notes: enabling the key authority requires a signature for **every** existing node (`tailscale lock init` collects them automatically); nodes joining a locked tailnet via a plain auth key stay locked out until signed with `tailscale lock sign`; `ionscale tailnets disable-tailnet-lock` only revokes the capability and is refused while a key authority is active — disable it with the disablement secret first.
 
+If the authority can no longer be administered (every trusted lock key and disablement secret lost), delete the tailnet with `--force` and recreate it under the same name; deleting a tailnet also removes its key-authority records. Nodes that join with fresh state are unaffected, but a node that kept its tailscaled state from the old tailnet still holds the old authority and stays locked out after rejoining: run `tailscale lock local-disable` on it once.
+
 ### DNS Configuration
 
 Controls DNS settings:

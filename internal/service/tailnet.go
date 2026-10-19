@@ -354,6 +354,12 @@ func (s *Service) DeleteTailnet(ctx context.Context, req *connect.Request[api.De
 			return err
 		}
 
+		// The tailnet-lock authority (AUMs and state) has no foreign key to the
+		// tailnet, so it would otherwise outlive it.
+		if err := tx.DeleteTKAByTailnet(ctx, req.Msg.TailnetId); err != nil {
+			return err
+		}
+
 		if err := tx.DeleteTailnet(ctx, req.Msg.TailnetId); err != nil {
 			return err
 		}
