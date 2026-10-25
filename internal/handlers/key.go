@@ -21,6 +21,9 @@ func KeyHandler(keys *config.ServerKeys) echo.HandlerFunc {
 	publicKey := keys.ControlKey.Public()
 
 	return func(c echo.Context) error {
+		// The keys are public: a page on any origin may read them (a browser
+		// client fetches them before its WebSocket upgrade).
+		c.Response().Header().Set("Access-Control-Allow-Origin", "*")
 		v := c.QueryParam("v")
 
 		if v != "" {
