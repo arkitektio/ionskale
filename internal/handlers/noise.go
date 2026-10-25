@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 	"io"
 	"net/http"
+	"strings"
 	"tailscale.com/control/controlhttp/controlhttpserver"
 	"tailscale.com/net/netutil"
 	"tailscale.com/types/key"
@@ -33,6 +34,20 @@ func (h *NoiseHandlers) Upgrade(c echo.Context) error {
 	}
 
 	handler := h.createPeerHandler(conn.Peer())
+
+	if strings.EqualFold(c.Request().Header.Get("Upgrade"), "websocket") {
+		// Over a WebSocket: HTTP/2 served on the connection directly, until it
+		// ends. Through net/http's server (and h2c) it would not last: handing
+		// the connection over, the server stops its background read with a
+		// deadline in the past, and a deadline that passes while a read is
+		// active closes a WebSocket connection. Returning would end it too
+		// (it lives as long as the request's context).
+		(&http2.Server{}).ServeConn(conn, &http2.ServeConnOpts{
+			Context: c.Request().Context(),
+			Handler: handler,
+		})
+		return nil
+	}
 
 	server := http.Server{}
 	server.Handler = h2c.NewHandler(handler, &http2.Server{})

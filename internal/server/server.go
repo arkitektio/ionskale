@@ -190,6 +190,9 @@ func Start(ctx context.Context, c *config.Config) error {
 	webMux.GET("/healthz", handlers.Health(db))
 	webMux.GET("/key", handlers.KeyHandler(serverKey))
 	webMux.POST("/ts2021", noiseHandlers.Upgrade)
+	// The WebSocket form of the same upgrade (a GET: browsers cannot
+	// upgrade a POST), for clients without raw TCP.
+	webMux.GET("/ts2021", noiseHandlers.Upgrade)
 	webMux.GET("/.well-known/jwks", oidcConfigHandlers.Jwks)
 	webMux.GET("/.well-known/openid-configuration", oidcConfigHandlers.OpenIDConfig)
 
