@@ -1,11 +1,14 @@
 package mapping
 
 import (
+	"net/netip"
+	"strings"
 	"testing"
 
 	"github.com/jsiebens/ionscale/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"tailscale.com/tailcfg"
 )
 
 func TestToDNSConfigExtraRecords(t *testing.T) {
@@ -60,4 +63,30 @@ func TestToDNSConfigUserRouteWinsOverRecordRoute(t *testing.T) {
 	dns := ToDNSConfig(machine, tailnet, cfg)
 	require.Len(t, dns.Routes["example.com"], 1)
 	assert.Equal(t, "10.0.0.53", dns.Routes["example.com"][0].Addr)
+}
+
+// A machine's peers are told the capability version its client speaks: a
+// tailscale client uses peer relays only with a node it knows to (121).
+func TestToNodeTellsTheCapabilityVersion(t *testing.T) {
+	tailnet := &domain.Tailnet{Name: "net", IAMPolicy: domain.NewHuJSON(&domain.IAMPolicy{})}
+	nodeKey := "nodekey:" + strings.Repeat("11", 32)
+	machineKey := "mkey:" + strings.Repeat("22", 32)
+	ipv4, ipv6 := netip.MustParseAddr("100.64.0.7"), netip.MustParseAddr("fd7a:115c:a1e0::7")
+	machine := func(capVer uint32) *domain.Machine {
+		return &domain.Machine{
+			ID: 7, Name: "m1", NodeKey: nodeKey, MachineKey: machineKey,
+			IPv4: domain.IP{Addr: &ipv4}, IPv6: domain.IP{Addr: &ipv6},
+			Tailnet: *tailnet, CapVer: capVer,
+		}
+	}
+	noRoutes := func(*domain.Machine) []netip.Prefix { return nil }
+
+	node, _, err := ToNode(130, machine(142), tailnet, nil, true, true, noRoutes)
+	require.NoError(t, err)
+	assert.Equal(t, tailcfg.CapabilityVersion(142), node.Cap)
+
+	// Not polled since the version is kept: left out, not claimed.
+	node, _, err = ToNode(130, machine(0), tailnet, nil, true, true, noRoutes)
+	require.NoError(t, err)
+	assert.Zero(t, node.Cap)
 }

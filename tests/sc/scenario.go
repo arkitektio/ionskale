@@ -177,6 +177,8 @@ func (s *Scenario) printIonscaleLogs() error {
 
 type TailscaleNodeConfig struct {
 	Hostname string
+	// Env is the environment of tailscaled, e.g. its debug knobs.
+	Env []string
 }
 
 type TailscaleNodeOpt = func(*TailscaleNodeConfig)
@@ -191,6 +193,13 @@ func WithName(name string) TailscaleNodeOpt {
 	}
 }
 
+// WithEnv adds NAME=value to tailscaled's environment.
+func WithEnv(env ...string) TailscaleNodeOpt {
+	return func(config *TailscaleNodeConfig) {
+		config.Env = append(config.Env, env...)
+	}
+}
+
 func (s *Scenario) NewTailscaleNode(opts ...TailscaleNodeOpt) *tsn.TailscaleNode {
 	config := &TailscaleNodeConfig{Hostname: petname.Generate(3, "-")}
 	for _, o := range opts {
@@ -200,6 +209,7 @@ func (s *Scenario) NewTailscaleNode(opts ...TailscaleNodeOpt) *tsn.TailscaleNode
 	runOpts := &dockertest.RunOptions{
 		Repository:   fmt.Sprintf("ts-%s", strings.Replace(targetVersion, ".", "-", -1)),
 		Hostname:     config.Hostname,
+		Env:          config.Env,
 		Networks:     []*dockertest.Network{s.network},
 		ExposedPorts: []string{"1055"},
 		Cmd: []string{

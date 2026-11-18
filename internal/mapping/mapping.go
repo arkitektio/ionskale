@@ -175,6 +175,10 @@ func ToNode(capVer tailcfg.CapabilityVersion, m *domain.Machine, tailnet *domain
 
 		MachineAuthorized: m.Authorized,
 		User:              tailcfg.UserID(m.UserID),
+
+		// What its client speaks: peers use peer relays, for one, only with
+		// a node they know to (0, omitted: not known yet).
+		Cap: tailcfg.CapabilityVersion(m.CapVer),
 	}
 
 	if len(m.KeySignature) > 0 {

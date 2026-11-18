@@ -75,6 +75,19 @@ func (h *PollNetMapHandler) handlePollNetMap(c echo.Context, m *domain.Machine, 
 	tailnetID := m.TailnetID
 	machineID := m.ID
 
+	// The version this client speaks, for its peers (tailcfg.Node.Cap). A
+	// stream request alone saves nothing else, so a client that only ever
+	// streams is recorded here.
+	capVer := uint32(mapRequest.Version)
+	capVerChanged := m.CapVer != capVer
+	m.CapVer = capVer
+	if capVerChanged && mapRequest.Stream {
+		if err := h.repository.SaveMachine(ctx, m); err != nil {
+			return logError(err)
+		}
+		h.sessionManager.NotifyAll(tailnetID)
+	}
+
 	mapper := mapping.NewPollNetMapper(mapRequest, m.ID, h.repository, h.sessionManager)
 
 	response, err := h.createMapResponse(mapper, false, mapRequest.Compress)

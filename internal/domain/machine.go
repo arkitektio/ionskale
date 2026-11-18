@@ -34,24 +34,29 @@ type MachineRepository interface {
 }
 
 type Machine struct {
-	ID                uint64 `gorm:"primary_key"`
-	Name              string
-	NameIdx           uint64
-	MachineKey        string
-	NodeKey           string
-	DiscoKey          string
+	ID         uint64 `gorm:"primary_key"`
+	Name       string
+	NameIdx    uint64
+	MachineKey string
+	NodeKey    string
+	DiscoKey   string
 	// NLKey is the machine's network-lock (tailnet lock) public key, in
 	// key.NLPublic.MarshalText form; empty when the client never sent one.
 	NLKey string
 	// KeySignature is the serialized tka.NodeKeySignature authorizing this
 	// machine's node key under tailnet lock.
-	KeySignature []byte
+	KeySignature      []byte
 	Ephemeral         bool
 	RegisteredTags    Tags
 	Tags              Tags
 	KeyExpiryDisabled bool
 	Authorized        bool
 	UseOSHostname     bool `gorm:"default:true"`
+	// CapVer is the capability version the machine's client last spoke
+	// (tailcfg.MapRequest.Version); 0 until it has polled since this was
+	// kept. Its peers are told (tailcfg.Node.Cap): a client only uses what
+	// it knows a peer to speak, peer relays (version 121) for one.
+	CapVer uint32
 
 	HostInfo     HostInfo
 	Endpoints    Endpoints
